@@ -1,0 +1,499 @@
+# API Documentation for Next.js landingpage for each of the service Project
+
+This document outlines the API structure needed to build a backend for the Next.js landingpage for each of the service application using Replit.
+
+## Overview
+
+The application is a multi-purpose landingpage for each of the service website with the following main features:
+
+- Portfolio/Project Management 
+- Blog System
+- E-commerce (Shop)
+- Team Management
+- Contact Forms
+- User Authentication
+- Menu/Navigation Management
+
+## Database Schema
+
+### 1. Users Table
+
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(50) DEFAULT 'user', -- 'admin', 'editor', 'user'
+  avatar VARCHAR(500),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 2. Blog Posts Table
+
+```sql
+CREATE TABLE blog_posts (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(500) NOT NULL,
+  slug VARCHAR(500) UNIQUE NOT NULL,
+  content TEXT,
+  excerpt TEXT,
+  featured_image VARCHAR(500),
+  images TEXT[], -- Array of image URLs
+  category VARCHAR(100),
+  author_id INTEGER REFERENCES users(id),
+  status VARCHAR(20) DEFAULT 'draft', -- 'draft', 'published', 'archived'
+  featured BOOLEAN DEFAULT FALSE,
+  blog_quote BOOLEAN DEFAULT FALSE,
+  blog_quote_two BOOLEAN DEFAULT FALSE,
+  video BOOLEAN DEFAULT FALSE,
+  video_id VARCHAR(100),
+  img_slider BOOLEAN DEFAULT FALSE,
+  blog_hero_slider BOOLEAN DEFAULT FALSE,
+  published_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 3. Portfolio/Projects Table
+
+```sql
+CREATE TABLE portfolio_projects (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(500) NOT NULL,
+  slug VARCHAR(500) UNIQUE NOT NULL,
+  description TEXT,
+  category VARCHAR(100),
+  featured_image VARCHAR(500),
+  images TEXT[], -- Array of image URLs
+  meta VARCHAR(200), -- e.g., "DEC 2024 . Creative"
+  status VARCHAR(20) DEFAULT 'draft', -- 'draft', 'published', 'archived'
+  featured BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 4. Products Table (E-commerce)
+
+```sql
+CREATE TABLE products (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(500) NOT NULL,
+  slug VARCHAR(500) UNIQUE NOT NULL,
+  description TEXT,
+  category VARCHAR(100),
+  price DECIMAL(10,2) NOT NULL,
+  featured_image VARCHAR(500),
+  related_images TEXT[], -- Array of image URLs
+  stock_quantity INTEGER DEFAULT 0,
+  status VARCHAR(20) DEFAULT 'active', -- 'active', 'inactive', 'out_of_stock'
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 5. Team Members Table
+
+```sql
+CREATE TABLE team_members (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  designation VARCHAR(255),
+  image VARCHAR(500),
+  bio TEXT,
+  social_links JSONB, -- Store social media links as JSON
+  status VARCHAR(20) DEFAULT 'active', -- 'active', 'inactive'
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 6. Contact Messages Table
+
+```sql
+CREATE TABLE contact_messages (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  subject VARCHAR(500),
+  message TEXT NOT NULL,
+  status VARCHAR(20) DEFAULT 'unread', -- 'unread', 'read', 'replied', 'archived'
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 7. Menu Items Table
+
+```sql
+CREATE TABLE menu_items (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  link VARCHAR(500),
+  parent_id INTEGER REFERENCES menu_items(id),
+  menu_type VARCHAR(50), -- 'main', 'footer', 'mobile'
+  order_index INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  meta_data JSONB, -- Store additional menu data like images, mega menu config
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 8. Social Links Table
+
+```sql
+CREATE TABLE social_links (
+  id SERIAL PRIMARY KEY,
+  platform VARCHAR(100) NOT NULL, -- 'facebook', 'twitter', 'instagram', etc.
+  icon VARCHAR(100), -- FontAwesome icon class
+  url VARCHAR(500) NOT NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## API Endpoints
+
+### Authentication Endpoints
+
+#### POST /api/auth/register
+
+Register a new user
+
+```json
+{
+  "name": "user",
+  "email": "user@example.com",
+  "password": "user123"
+}
+```
+
+#### POST /api/auth/login
+
+Login user
+
+```json
+{
+  "email": "user@example.com",
+  "password": "user123"
+}
+```
+
+#### POST /api/auth/logout
+
+Logout user
+
+### Blog Endpoints
+
+#### GET /api/blog
+
+Get all blog posts with pagination and filtering
+Query parameters:
+
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 10)
+- `category` (optional): Filter by category
+- `status` (optional): Filter by status (default: 'published')
+- `featured` (optional): Filter featured posts (true/false)
+
+#### GET /api/blog/:id
+
+Get single blog post by ID
+
+#### GET /api/blog/slug/:slug
+
+Get single blog post by slug
+
+#### POST /api/blog
+
+Create new blog post (Admin/Editor only)
+
+```json
+{
+  "title": "Blog Post Title",
+  "content": "Blog content...",
+  "excerpt": "Short excerpt...",
+  "category": "Marketing / Strategy",
+  "featured_image": "image-url.jpg",
+  "images": ["image1.jpg", "image2.jpg"],
+  "status": "published",
+  "featured": false,
+  "blog_quote": false,
+  "video": false,
+  "video_id": "youtube-video-id"
+}
+```
+
+#### PUT /api/blog/:id
+
+Update blog post (Admin/Editor only)
+
+#### DELETE /api/blog/:id
+
+Delete blog post (Admin only)
+
+### Portfolio Endpoints
+
+#### GET /api/portfolio
+
+Get all portfolio projects
+Query parameters:
+
+- `page`, `limit`, `category`, `status`, `featured` (same as blog)
+
+#### GET /api/portfolio/:id
+
+Get single portfolio project
+
+#### POST /api/portfolio
+
+Create new portfolio project (Admin/Editor only)
+
+```json
+{
+  "title": "Project Title",
+  "description": "Project description...",
+  "category": "Branding",
+  "featured_image": "image-url.jpg",
+  "images": ["image1.jpg", "image2.jpg"],
+  "meta": "DEC 2024 . Creative",
+  "status": "published"
+}
+```
+
+#### PUT /api/portfolio/:id
+
+Update portfolio project
+
+#### DELETE /api/portfolio/:id
+
+Delete portfolio project
+
+### Product Endpoints (E-commerce)
+
+#### GET /api/products
+
+Get all products
+Query parameters:
+
+- `page`, `limit`, `category`, `status`
+- `min_price`, `max_price`: Price range filtering
+- `search`: Search in title and description
+
+#### GET /api/products/:id
+
+Get single product
+
+#### POST /api/products
+
+Create new product (Admin only)
+
+```json
+{
+  "title": "Product Name",
+  "description": "Product description...",
+  "category": "Tennis",
+  "price": 125.0,
+  "featured_image": "image-url.jpg",
+  "related_images": ["image1.jpg", "image2.jpg"],
+  "stock_quantity": 100
+}
+```
+
+#### PUT /api/products/:id
+
+Update product
+
+#### DELETE /api/products/:id
+
+Delete product
+
+### Team Endpoints
+
+#### GET /api/team
+
+Get all team members
+
+#### GET /api/team/:id
+
+Get single team member
+
+#### POST /api/team
+
+Create team member (Admin only)
+
+```json
+{
+  "name": "John Doe",
+  "designation": "Art Director",
+  "image": "image-url.jpg",
+  "bio": "Team member bio...",
+  "social_links": {
+    "twitter": "https://twitter.com/johndoe",
+    "linkedin": "https://linkedin.com/in/johndoe"
+  }
+}
+```
+
+#### PUT /api/team/:id
+
+Update team member
+
+#### DELETE /api/team/:id
+
+Delete team member
+
+### Contact Endpoints
+
+#### POST /api/contact
+
+Submit contact form
+
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "subject": "Inquiry",
+  "message": "Contact message..."
+}
+```
+
+#### GET /api/contact
+
+Get all contact messages (Admin only)
+Query parameters: `page`, `limit`, `status`
+
+#### PUT /api/contact/:id
+
+Update contact message status (Admin only)
+
+### Menu Endpoints
+
+#### GET /api/menu
+
+Get all menu items
+Query parameters: `menu_type` (main, footer, mobile)
+
+#### POST /api/menu
+
+Create menu item (Admin only)
+
+```json
+{
+  "title": "Home",
+  "link": "/",
+  "parent_id": null,
+  "menu_type": "main",
+  "order_index": 1,
+  "meta_data": {
+    "img": "/assets/img/menu/home.jpg"
+  }
+}
+```
+
+#### PUT /api/menu/:id
+
+Update menu item
+
+#### DELETE /api/menu/:id
+
+Delete menu item
+
+### Social Links Endpoints
+
+#### GET /api/social
+
+Get all social links
+
+#### POST /api/social
+
+Create social link (Admin only)
+
+```json
+{
+  "platform": "facebook",
+  "icon": "fa-brands fa-facebook-f",
+  "url": "https://facebook.com/yourpage",
+  "order_index": 1
+}
+```
+
+#### PUT /api/social/:id
+
+Update social link
+
+#### DELETE /api/social/:id
+
+Delete social link
+
+## Response Format
+
+All API responses follow this format:
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "message": "Operation successful",
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 100,
+    "pages": 10
+  }
+}
+```
+
+### Error Response
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Validation failed",
+    "details": {
+      "email": "Email is required"
+    }
+  }
+}
+```
+
+## Authentication
+
+Use JWT tokens for authentication. Include the token in the Authorization header:
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+## File Upload
+
+For image uploads, use multipart/form-data:
+
+- Endpoint: `POST /api/upload`
+- Field name: `file`
+- Response: Returns the uploaded file URL
+
+## Environment Variables
+
+```env
+DATABASE_URL=
+database_name
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRES_IN=7d
+UPLOAD_DIR=./uploads
+MAX_FILE_SIZE=5242880
+ALLOWED_FILE_TYPES=image/jpeg,image/png,image/gif,image/webp
+```
+
+
+
+This API structure provides all the necessary endpoints to support the Next.js frontend application with full CRUD operations for all content types.

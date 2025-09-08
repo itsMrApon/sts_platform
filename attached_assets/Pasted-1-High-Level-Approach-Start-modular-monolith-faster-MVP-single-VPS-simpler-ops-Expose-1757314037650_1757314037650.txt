@@ -1,0 +1,432 @@
+1. High-Level Approach
+   • Start modular monolith: faster MVP, single VPS, simpler ops.
+   • Expose single public API per tenant/brand (GraphQL/REST) behind API Gateway.
+   • Core infra shared: Postgres, Redis, MinIO/S3, message bus.
+   • Modularized by domain: Commerce, Procurement/Manufacturing, Agency/SaaS, CMS.
+   • Future-ready: modules can evolve into microservices.
+
+⸻
+
+2. Recommended Core Stack
+
+Layer
+Options / Recommendations
+API Gateway
+Traefik / Nginx (Docker), per-brand subdomains, rate limiting
+Identity & RBAC
+Keycloak (OIDC/OAuth2, SSO), tenants = organizations
+frontend + dashboard
+NestJS uploaded in vercel needs to connect the api
+Backend
+NestJS (Node/TypeScript, Prisma/TypeORM)
+Database
+PostgreSQL 16: schema-per-tenant (strong isolation)
+Cache & Queue
+Redis (cache, pub/sub, rate-limiting), optional RabbitMQ/Redpanda/Kafka
+Object Storage
+MinIO (local, S3 compatible) → can swap Cloudflare R2/S3
+Search
+Meilisearch or OpenSearch for products/orders/vendors
+CMS
+Directus / Strapi (Postgres, Keycloak SSO)
+ERP
+erpnext (Procurement, Manufacturing, Stock, Accounts), integrate via webhooks/REST
+my erpnext docker:
+queue-short-1
+
+eadcf6af57c4
+
+frappe/erpnext:v15.78.1
+0.11%
+1 hour ago
+scheduler-1
+
+06a1cc5c61b6
+
+frappe/erpnext:v15.78.1
+0%
+1 hour ago
+websocket-1
+
+88d6bd6334fe
+
+frappe/erpnext:v15.78.1
+0%
+1 hour ago
+create-site-1
+
+fe7273f90a73
+
+frappe/erpnext:v15.78.1
+0%
+1 hour ago
+db-1
+
+c5d1e5186a18
+
+mariadb:10.6
+1.18%
+1 hour ago
+frontend-1
+
+4997319d4f38
+
+frappe/erpnext:v15.78.1
+8080:8080⁠
+0%
+1 hour ago
+queue-long-1
+
+5f41407a7580
+
+frappe/erpnext:v15.78.1
+0.09%
+1 hour ago
+redis-queue-1
+
+95521980c220
+
+redis:6.2-alpine
+0.13%
+1 hour ago
+redis-cache-1
+
+cea6dc1ffcba
+
+redis:6.2-alpine
+
+Commerce Engine
+Saleor (Python/GraphQL),
+My Saleor Docker :
+(db-1
+
+amd64
+a86b0a9a0d07
+
+library/postgres:15-alpine
+5432:5432⁠
+0%
+1 day ago
+dashboard-1
+
+amd64
+c4397edd168b
+
+saleor/saleor-dashboard:latest
+9001:80⁠
+0%
+1 day ago
+api-1
+
+amd64
+a2992638ee4a
+
+saleor/saleor:3.20
+8000:8000⁠
+2.3%
+1 day ago
+worker-1
+
+amd64
+0ecc379490b5
+
+saleor/saleor:3.20
+0.37%
+1 day ago
+redis-1
+
+amd64
+4423e868e7a1
+
+library/redis:7.0-alpine
+6379:6379⁠
+0.47%
+1 day ago
+jaeger-1
+
+amd64
+fbffc9478512
+
+jaegertracing/all-in-one
+14268:14268⁠
+0.03%
+1 day ago
+mailpit-1
+
+amd64
+fd8280adfe45
+
+axllent/mailpit
+1025:1025⁠);
+
+Observability
+Grafana + Prometheus (metrics), Loki (logs), Sentry (errors), Uptime-
+
+⸻
+
+3. Tenancy Model
+   • Tenant = project/legal entity (SudoTechServe, SwitchToSwag, StrongTermStrategy)
+   • Optional child tenants per operator/location.
+   • Organization → Users, Roles, Locations, Channels.
+   • Role templates: Owner, Admin, Finance, Ops, Procurement, Warehouse, Designer, Agent, Vendor, Client.
+   • Enforce RLS or schema isolation for multi-tenancy.
+
+⸻
+
+4. Domain Modules
+
+4.1 Procurement (STS)(strongtermstrategy)
+• Use Case: this is the producremnt service where client can see and order a bulk or regular quantity products from client location like from america to bangladesh with our usa source(my friend), to bangladesh ,usa from china source(my friend)
+• Entities: Vendors, RFQ, Quotes, PO, Contracts, Incoterms, Shipments, QC, Invoices
+• Flow: RFQ → Quote → Approve → PO → Production → Shipment → GRN → 3-way match
+• Dashboards: Pipeline view, supplier scorecards, landed cost, exceptions
+
+4.2 Manufacturing (STS)(strongtermstrategy)
+• Use Case: this is the manufacaturing service where client can have the products (clothing like knit,) and find the sourceing like different fabric, pattern, layer for productions , cost calculation and finnaly buyer can place and work order for the production and he will get FOB shipment.
+• Entities: BOM, Routing, Work Orders, Lots, Machines, Labor, Scrap, Yield
+• Flow: Demand → MRP → WO → Issue materials → QC → Finished goods → Putaway
+• Dashboards: Capacity load, WIP aging, OEE, cost variance
+• Custom production planning flow (bulk orders, clothing-focused): 1. Select fabric (source, composition, GSM, dyeing/finishing options) 2. Select pattern (base pattern by size set) 3. Edit pattern (fit adjustments, allowances, grading) 4. Select layout/marker (size ratio, fabric width) 5. Edit layout (marker efficiency, waste optimization) 6. Print/AMBO (pattern/marker printout or automated marking & bundling ops) 7. Accessories (threads, labels, trims, packaging) 8. Finishing (wash/press, QC, packing) 9. FOB (incoterms, port/airport, shipment plan) 10. Final rate calculation (roll-up: material + labor + overhead + margin)
+• Buyer portal (bulk order): configure → estimate cost in real-time → submit RFQ/PO → production tracking → shipment → GRN → 3-way match
+~
+Custom backend needs:
+• Multi-country sourcing automation (e.g., auto-routing shipments from USA/China → BD)
+• Integration with friends/partners’ stock systems if external suppliers don’t connect via standard ERPNext APIs
+• Custom dashboard or visualization for advanced landed cost and exceptions
+• Advanced workflow triggers (like automatic purchase orders when thresholds are met across multiple warehouses)
+~
+~
+intrigated with erpnext for erp of the stock and calculate the step to production and priceing for each step, accounts for the income of the system (strongtermsstrategy)
+~
+4.3 E-commerce & Dropship (STS)(switchtoswag)
+• Use Case: this is the edc store where i will have the edc products of my sourceing or my manufacturing products like uniqure gudget, leather item, 3d printed item, winter clothing accessoris, etc.
+• Entities: saleor + erpnext (Catalog, Variants/SKU, Inventory, Listings, Orders, Payments, Fulfillment, Returns)
+• Integrations: eBay API, Shippo/EasyPost, amazon, POD, AliExpress/Temu
+• Automation: Auto-listing, order routing, SLA/exception queue
+• Dashboards: erpnext and saleor and my backend custome dashboard
+• On-demand EDC model (custom): 1. Customer selects base EDC product (e.g., knife pouch, leather wallet, gadget) 2. Choose material/finish (leather type/color, 3D print material, coating) 3. Optional personalization (engraving/embossing, monogram, color accents) 4. Dynamic price calculation (base + options + lead time factor) 5. Order placement in Saleor → pushes MTO/MTS decision to ERPNext 6. If not in stock, trigger Made-to-Order workflow (BOM, WO, routing) 7. Status tracking in storefront (queued → in production → QA → shipped) 8. Post-fulfillment sync (inventory, accounting, customer notifications)
+
+4.4 Design Studio (STS)(switchtoswag)
+• Use Case: this is the Fashion designing store where i will have my designing products with my manufacturing rmg with my unique pattern in to different location like nyc, sweden, bangladesh, more later.
+• Entities: salior + erpnext (Catalog, Variants/SKU, Inventory, Listings, Orders, Payments, Fulfillment, Returns)
+• Assets: Library in S3/MinIO, briefs, proof workflow, versioning, export presets
+~
+Custom backend needs: 1. Marketplace connectors / automation:
+• eBay, Amazon, Shopify, AliExpress, Temu, POD → ERPNext
+• Auto-listing, order routing, SLA/exception queue 2. Custom ERPNext ↔ Saleor sync scripts:
+• Maintain “single source of truth” for products, stock, pricing 3. Dropshipping logic:
+• Vendor assignment, auto-PO creation, fulfillment instruction routing 4. Custom dashboards:
+• Consolidate Saleor + ERPNext data for multi-channel performance tracking 5. Subscription / event triggers for Made-to-Order:
+• Approvals → Manufacturing module → ERPNext inventory updates
+
+✅ Core e-commerce is covered; custom work is mostly for multi-channel automation, order routing, and dashboards.
+~
+~
+switchtoswag has 3 model
+
+1. Online Shop (Direct-to-Customer)
+   • Purpose: Your own website (Saleor storefront +nextjs front landing page) sells finished products directly to customers.
+   • Workflow:
+1. Product catalog defined in ERPNext → synced to Saleor.
+1. Customers place orders → Saleor pushes order to ERPNext.
+1. ERPNext generates invoices, manages stock, triggers fulfillment.
+   • Focus: Customer experience, payments, inventory visibility.
+
+⸻
+
+2. Production / Made-to-Order
+   • Purpose: Manufacture products on demand if custom vote for design approve to go to production where i can break the cost event point for manufacture.
+   • Workflow:
+   1. ERPNext receives order → checks stock.
+   2. If insufficient, triggers Manufacturing module: BOM, Work Order, Routing, QC.
+   3. Once produced, ERPNext updates inventory → Saleor shows available stock.
+      • Focus: Lean production, cost calculation, MRP, lead times.
+
+⸻
+
+3. Dropshipping & Marketplace Store
+   • Purpose: Sell via eBay, Amazon, Shopify, POD, or other marketplaces without holding inventory.
+   • Workflow:
+   1. Product listings pushed to marketplaces from ERPNext/Saleor.
+   2. Orders received on marketplaces → routed into ERPNext.
+   3. ERPNext handles vendor procurement, shipment instructions, invoicing.
+      • Focus: Multi-channel order management, vendor integration, SLA/exception handling.
+
+connect erpnext with saleor for (switchtoswag)
+
+1. Single Source of Truth for Products & Stock
+   • Define catalog in erpnext (ERP) → auto-sync to Saleor store.
+   • Inventory updates in erpnext (procurement, manufacturing, warehouse) → Saleor stock is always correct.
+   • Avoid overselling.
+2. Automated Order → ERP Flow
+   • Orders placed in Saleor (website, eBay, Shopify, etc.) → pushed to erpnext.
+   • erpnext generates invoice, delivery note, and fulfillment instructions automatically.
+   • Accounting and financial records stay consistent.
+3. Financial Integration
+   • Payments collected in Saleor (Stripe, PayPal, etc.) → erpnext posts them into accounting/ledger.
+   • You get a clean P&L per channel (online shop vs. BPO vs. manufacturing).
+4. Unified Procurement → Sales View
+   • Procurement in erpnext → ensures availability of stock → reflected in Saleor listings.
+   • Helps for dropshipping and multi-warehouse routing.
+5. Multi-Channel Scaling
+   • Saleor handles storefronts, carts, checkout flows.
+   • erpnext handles procurement, vendors, inventory, and accounting.
+   • Together, you can scale to multiple storefronts without losing control of backend ops.
+   ~
+   4.5 Agency (STS)(sudotechserve)
+   • Entities: Leads, Deals, Proposals, Projects, Tasks, Timesheets, Subscriptions, Invoices, Support Tickets
+   • Flow: Lead → Deal → Proposal → Project → Invoice → Payment
+   • Dashboards: Revenue, utilization, margin, MRR, churn
+
+4.6 SaaS (STS)(sudotechserve)
+• Use Case: this is the saas where i will have the my saas product like cashbook, AR for shoes glasses clothing virtual tour ,more later for a store with subscription and how to use it campaign.
+• Entities: Leads, Deals, Proposals, Projects, Tasks, Timesheets, Subscriptions, Invoices, Support Tickets
+• Flow: Lead → Deal → Proposal → Project → Invoice → Payment
+• Dashboards: Revenue, utilization, margin, MRR, churn
+~
+Custom backend needs:
+• Asset management library: S3/MinIO storage, versioning, design briefs, proof workflow
+• Approval workflow: Event triggers to push designs to production or online shop
+• Export presets / file management: For manufacturing handoff
+• Integration with multi-location production: Linking assets to specific manufacturing locations (NYC, Sweden, BD)
+
+~
+~
+automation chating system for (sudotechserve),
+discord features
+~
+4.7 BPO / friend Portal
+• Modules: Assignments, KYC, payouts, dispute center, document vault
+• Features: client finders fee schedule, weekly/monthly settlement
+• Custom backend: external suppliers will connect via standard ERPNext APIs
+
+1. Product & Catalog Management
+   • ERPNext strength:
+   • Full product master with categories, attributes, variants (size, color, material).
+   • BOM (if manufactured).
+   • Pricing rules (customer group, region, discounts).
+   • Saleor strength:
+   • Gorgeous storefront/catalog presentation.
+   • Multi-channel publishing (site A, eBay, Amazon, Shopify).
+
+👉 Integration benefit: ERPNext is the single source of truth. Products & inventory sync to Saleor, customers see only what’s available.
+
+⸻
+
+2. Inventory & Warehousing
+   • ERPNext:
+   • Multi-warehouse support (e.g., USA, China, BD).
+   • Stock movements, landed costs, batch/serial tracking.
+   • Saleor:
+   • Multi-channel stock visibility (each storefront can use a different warehouse).
+
+👉 Together → Saleor shows accurate stock per location. No overselling.
+
+⸻
+
+3. Order & Fulfillment
+   • Saleor:
+   • Customer-facing checkout, payment gateways, order status.
+   • ERPNext:
+   • Converts Saleor orders → Sales Orders / Delivery Notes.
+   • Generates Invoices automatically.
+   • Triggers procurement (if dropshipping) or manufacturing (if made-to-order).
+
+👉 You get a closed loop: Customer order → ERPNext backend execution → status pushed back to Saleor.
+
+⸻
+
+4. Accounting & Finance
+   • ERPNext:
+   • Chart of accounts, tax handling, multi-currency.
+   • Payments reconciliation, expenses, P&L, balance sheet.
+   • Saleor:
+   • Only handles checkout + payment intent.
+
+👉 Saleor collects payment → ERPNext books it correctly → you get real accounting + financial reports.
+
+⸻
+
+5. Procurement & Manufacturing
+   • ERPNext:
+   • Full RFQ → PO → MRP → Work Order flow.
+   • Saleor:
+   • None.
+
+👉 If stock is low, ERPNext can auto-create procurement or manufacturing tasks, ensuring Saleor never lists out-of-stock items.
+
+⸻
+
+6. CRM & Support
+   • ERPNext:
+   • CRM pipeline, support tickets, HR, timesheets.
+   • Saleor:
+   • None.
+
+👉 After-sale customer support happens in ERPNext, not in Saleor.
+
+~
+
+⸻
+
+5. Core Data Model (simplified)
+   • TENANTS, USERS, USER_ORG, LOCATIONS, CHANNELS
+   • Catalog: PRODUCTS, VARIANTS, PRICES, INVENTORY
+   • Commerce: ORDERS, ORDER_LINES, PAYMENTS, SHIPMENTS, RETURNS
+   • Procurement: VENDORS, RFQ, QUOTES, PO, PO_LINES, RECEIPTS, QC_LOTS
+   • Manufacturing: BOM, BOM_ITEMS, WO, ROUTINGS
+   • Agency: LEADS, DEALS, PROJECTS, TASKS, TIMESHEETS, SOW, SUBSCRIPTIONS
+   • Finance: LEDGER_ENTRIES, JOURNALS, TAX_RATES, FX_RATES, PAYOUTS
+   • Audit & Secrets: AUDIT_LOGS, SECRETS
+
+⸻
+
+6. Payments & Settlement
+   • Gateways: Stripe, PayPal + regional (bKash, Nagad, SSLCommerz)
+   • Orchestration: Adapter pattern, split payments, weekly partner settlement
+   • Compliance: Tokenized cards, webhook signatures, SAQ-A
+   • Routing: order.channel.region → preferred gateway
+
+⸻
+
+7. Integrations & Connectors
+   • Commerce: eBay, amazon, Shippo/EasyPost
+   • Accounting: Xero/QuickBooks
+   • ERP: erpnext
+   • Communication: Postmark/Resend, Twilio, WhatsApp API
+   • Pattern: Docker worker per connector with poll/transform/upsert contract
+
+⸻
+
+8. Security & Data Governance
+   • Authentication: Keycloak SSO, short-lived JWT, refresh tokens httpOnly
+   • Data: RLS, tenant-specific encryption (envelope), audit trails
+   • Backups: nightly pg_dump + WAL, MinIO versioning
+
+⸻
+
+9. DevOps (VPS)
+   • Docker Compose (later Swarm/K8s)
+   • Public access only via Traefik; Let’s Encrypt TLS
+   • CI/CD via GitHub Actions → build & SSH deploy
+   • Observability: Prometheus + Grafana, Loki, Sentry, Uptime-Kuma
+
+⸻
+
+10. API Surface (example)
+    • Auth: /auth/login, /me
+    • Tenant: /tenants, /tenants/:id/invites
+    • Catalog: /products, /products/:id/variants
+    • Orders: /orders, /orders/:id/pay/fulfill/refund
+    • Procurement: /rfq, /po, /receipts, /qc
+    • Manufacturing: /bom, /wo, /wo/:id/progress
+    • Agency/SaaS: /leads, /deals, /projects, /subscriptions
+    • Webhooks: /webhooks/stripe, /webhooks/sslcommerz, /webhooks/ebay, /webhooks/shipping
+
+⸻
+
+11. Admin & Brand Dashboards (Next.js)
+    • Global Admin: tenant provisioning, partner payouts, audit
+    • SudoTechServe: CRM, project burndown, timesheets, invoicing
+    • SwitchToSwag: Catalog manager, listings, order control, returns
+    • StrongTermStrategy: RFQ/PO pipeline, vendor scorecards, MRP board, shipment tracker
