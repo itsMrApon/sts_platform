@@ -7,7 +7,8 @@ export interface ERPNextConfig {
 }
 
 export interface ERPNextResponse<T = any> {
-  message: T;
+  message?: T;
+  data?: T;
 }
 
 export class ERPNextClient {
@@ -51,7 +52,8 @@ export class ERPNextClient {
         payload: { url, method: options.method || 'GET' }
       });
 
-      return data.message;
+      const payload = (data && (data.message as T)) ?? (data && (data.data as T));
+      return (payload as T);
     } catch (error) {
       // Log error
       await storage.createIntegrationLog({

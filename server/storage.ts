@@ -23,6 +23,9 @@ export interface IStorage {
   updateSyncStatus(tenantId: string, source: string, updates: Partial<SyncStatus>): Promise<SyncStatus>;
 }
 
+// Use database storage instead of in-memory
+import { DbStorage } from "./storage-db";
+
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private tenants: Map<string, Tenant>;
@@ -46,7 +49,10 @@ export class MemStorage implements IStorage {
         slug: "sudotechserve",
         description: "Agency & SaaS Operations",
         erpnextUrl: "http://localhost:8080",
-        saleorUrl: "http://localhost:9001",
+        erpnextApiKey: "175aafefd8c448f",
+        erpnextApiSecret: "1b2b919c1580ade",
+        saleorUrl: "http://localhost:8000",
+        saleorToken: "4xtNglUY26s6lDOptk0oUeT66bqxbt",
         isActive: true
       },
       {
@@ -54,7 +60,10 @@ export class MemStorage implements IStorage {
         slug: "switchtoswag", 
         description: "E-commerce & Design Studio",
         erpnextUrl: "http://localhost:8080",
-        saleorUrl: "http://localhost:9001",
+        erpnextApiKey: "175aafefd8c448f",
+        erpnextApiSecret: "1b2b919c1580ade",
+        saleorUrl: "http://localhost:8000",
+        saleorToken: "4xtNglUY26s6lDOptk0oUeT66bqxbt",
         isActive: true
       },
       {
@@ -62,7 +71,10 @@ export class MemStorage implements IStorage {
         slug: "strongtermstrategy",
         description: "Procurement & Manufacturing",
         erpnextUrl: "http://localhost:8080",
-        saleorUrl: "http://localhost:9001",
+        erpnextApiKey: "175aafefd8c448f",
+        erpnextApiSecret: "1b2b919c1580ade",
+        saleorUrl: "http://localhost:8000",
+        saleorToken: "4xtNglUY26s6lDOptk0oUeT66bqxbt",
         isActive: true
       }
     ];
@@ -183,4 +195,6 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Use database storage for production, fallback to memory for development
+const useDatabase = process.env.DATABASE_URL && process.env.NODE_ENV === 'production';
+export const storage = useDatabase ? new DbStorage() : new MemStorage();

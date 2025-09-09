@@ -50,5 +50,10 @@ export const apiClients = {
   async getIntegrationLogs(slug: string) {
     const response = await apiRequest('GET', `/api/tenants/${slug}/logs`);
     return response.json();
+  },
+
+  async getLogs(slug: string) {
+    const response = await apiRequest('GET', `/api/tenants/${slug}/logs`);
+    return response.json();
   }
 };

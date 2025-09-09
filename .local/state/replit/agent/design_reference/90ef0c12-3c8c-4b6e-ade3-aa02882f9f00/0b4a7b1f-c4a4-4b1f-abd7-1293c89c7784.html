@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STS Multi-Tenant Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                },
+                fontFamily: {
+                    sans: ["Inter", "sans-serif"],
+                }
+            },
+        }
+    };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --radius: 0.5rem;
+        }
+        
+        /* SudoTechServe Theme */
+        .theme-sudotechserve {
+            --background: hsl(210 40% 98%);
+            --foreground: hsl(222.2 84% 4.9%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(222.2 84% 4.9%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(222.2 84% 4.9%);
+            --primary: hsl(221.2 83.2% 53.3%);
+            --primary-foreground: hsl(210 40% 98%);
+            --secondary: hsl(210 40% 96%);
+            --secondary-foreground: hsl(222.2 84% 4.9%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(215.4 16.3% 46.9%);
+            --accent: hsl(262.1 83.3% 57.8%);
+            --accent-foreground: hsl(210 40% 98%);
+            --destructive: hsl(0 84.2% 60.2%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(214.3 31.8% 91.4%);
+            --input: hsl(214.3 31.8% 91.4%);
+            --ring: hsl(221.2 83.2% 53.3%);
+        }
+        
+        /* SwitchToSwag Theme */
+        .theme-switchtoswag {
+            --background: hsl(20 14.3% 95.1%);
+            --foreground: hsl(24 9.8% 10%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(24 9.8% 10%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(24 9.8% 10%);
+            --primary: hsl(20.5 90.2% 48.2%);
+            --primary-foreground: hsl(60 9.1% 97.8%);
+            --secondary: hsl(60 4.8% 95.9%);
+            --secondary-foreground: hsl(24 9.8% 10%);
+            --muted: hsl(60 4.8% 95.9%);
+            --muted-foreground: hsl(25 5.3% 44.7%);
+            --accent: hsl(142.1 76.2% 36.3%);
+            --accent-foreground: hsl(355.7 100% 97.3%);
+            --destructive: hsl(0 84.2% 60.2%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(20 5.9% 90%);
+            --input: hsl(20 5.9% 90%);
+            --ring: hsl(20.5 90.2% 48.2%);
+        }
+        
+        /* StrongTermStrategy Theme */
+        .theme-strongtermstrategy {
+            --background: hsl(210 40% 98%);
+            --foreground: hsl(215 25% 27%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(215 25% 27%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(215 25% 27%);
+            --primary: hsl(188.7 85% 32.5%);
+            --primary-foreground: hsl(0 0% 100%);
+            --secondary: hsl(210 40% 96%);
+            --secondary-foreground: hsl(215 25% 27%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(215.4 16.3% 46.9%);
+            --accent: hsl(215 25% 27%);
+            --accent-foreground: hsl(210 40% 98%);
+            --destructive: hsl(0 84.2% 60.2%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(214.3 31.8% 91.4%);
+            --input: hsl(214.3 31.8% 91.4%);
+            --ring: hsl(188.7 85% 32.5%);
+        }
+    </style>
+</head>
+<body class="theme-sudotechserve bg-background text-foreground">
+    
+    <!-- @COMPONENT: TenantSwitcher -->
+    <div class="fixed top-4 right-4 z-50">
+        <div class="bg-card border border-border rounded-lg shadow-lg p-2">
+            <div class="flex space-x-1">
+                <button onclick="switchTenant('sudotechserve')" class="px-3 py-2 text-xs rounded bg-primary text-primary-foreground">
+                    SudoTechServe
+                </button>
+                <button onclick="switchTenant('switchtoswag')" class="px-3 py-2 text-xs rounded hover:bg-secondary">
+                    SwitchToSwag
+                </button>
+                <button onclick="switchTenant('strongtermstrategy')" class="px-3 py-2 text-xs rounded hover:bg-secondary">
+                    StrongTermStrategy
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: TenantSwitcher -->
+
+    <div class="flex h-screen">
+        <!-- @COMPONENT: Sidebar -->
+        <aside id="sidebar" class="w-64 bg-card border-r border-border flex flex-col">
+            <div class="p-6 border-b border-border">
+                <h1 id="brand-name" class="text-xl font-bold text-foreground">SudoTechServe</h1>
+                <p id="brand-tagline" class="text-sm text-muted-foreground mt-1">Digital Agency & SaaS</p>
+            </div>
+            
+            <nav id="navigation" class="flex-1 p-4 space-y-2">
+                <!-- Navigation will be dynamically updated -->
+            </nav>
+            
+            <div class="p-4 border-t border-border">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-primary-foreground text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm font-medium" data-mock="true">John Admin</div>
+                        <div class="text-xs text-muted-foreground" data-mock="true">Administrator</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar -->
+        
+        <!-- @COMPONENT: MainContent -->
+        <main class="flex-1 overflow-hidden">
+            <header class="bg-card border-b border-border px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 id="page-title" class="text-2xl font-semibold text-foreground">Dashboard</h2>
+                        <p id="page-description" class="text-muted-foreground mt-1">Welcome to your digital agency dashboard</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button class="bg-accent text-accent-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors">
+                            <i class="fas fa-sync-alt mr-2"></i>
+                            Sync ERPNext
+                        </button>
+                        <button class="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-secondary/90 transition-colors">
+                            <i class="fas fa-sync-alt mr-2"></i>
+                            Sync Saleor
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <div id="dashboard-content" class="p-6 h-full overflow-auto">
+                <!-- Dashboard content will be dynamically loaded -->
+            </div>
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+    
+    <script>
+        // Navigation configurations for each tenant
+        const tenantConfigs = {
+            sudotechserve: {
+                theme: 'theme-sudotechserve',
+                name: 'SudoTechServe',
+                tagline: 'Digital Agency & SaaS',
+                pageTitle: 'Agency Dashboard',
+                pageDescription: 'Welcome to your digital agency dashboard',
+                navigation: [
+                    { icon: 'fas fa-chart-line', label: 'Dashboard', active: true },
+                    { icon: 'fas fa-project-diagram', label: 'Projects' },
+                    { icon: 'fas fa-users', label: 'Clients' },
+                    { icon: 'fas fa-cube', label: 'SaaS Products' },
+                    { icon: 'fas fa-clock', label: 'Time Tracking' },
+                    { icon: 'fas fa-file-invoice', label: 'Invoicing' },
+                    { icon: 'fas fa-headset', label: 'Support' },
+                    { icon: 'fas fa-comments', label: 'Chat System' },
+                    { icon: 'fas fa-cog', label: 'Settings' }
+                ]
+            },
+            switchtoswag: {
+                theme: 'theme-switchtoswag',
+                name: 'SwitchToSwag',
+                tagline: 'E-commerce & Design Studio',
+                pageTitle: 'E-commerce Dashboard',
+                pageDescription: 'Manage your on-demand store and products',
+                navigation: [
+                    { icon: 'fas fa-chart-pie', label: 'Dashboard', active: true },
+                    { icon: 'fas fa-box', label: 'Products' },
+                    { icon: 'fas fa-shopping-cart', label: 'Orders' },
+                    { icon: 'fas fa-palette', label: 'Design Studio' },
+                    { icon: 'fas fa-warehouse', label: 'Inventory' },
+                    { icon: 'fas fa-store', label: 'Marketplace' },
+                    { icon: 'fas fa-truck', label: 'Fulfillment' },
+                    { icon: 'fas fa-paint-brush', label: 'Customization' },
+                    { icon: 'fas fa-chart-bar', label: 'Analytics' }
+                ]
+            },
+            strongtermstrategy: {
+                theme: 'theme-strongtermstrategy',
+                name: 'StrongTermStrategy',
+                tagline: 'Procurement & Manufacturing',
+                pageTitle: 'Procurement Dashboard',
+                pageDescription: 'Multi-country sourcing and manufacturing hub',
+                navigation: [
+                    { icon: 'fas fa-tachometer-alt', label: 'Dashboard', active: true },
+                    { icon: 'fas fa-industry', label: 'Manufacturing' },
+                    { icon: 'fas fa-shopping-bag', label: 'Procurement' },
+                    { icon: 'fas fa-truck-loading', label: 'Suppliers' },
+                    { icon: 'fas fa-file-contract', label: 'RFQ/Quotes' },
+                    { icon: 'fas fa-ship', label: 'Shipments' },
+                    { icon: 'fas fa-clipboard-check', label: 'Quality Control' },
+                    { icon: 'fas fa-calculator', label: 'Costing' },
+                    { icon: 'fas fa-globe', label: 'Locations' }
+                ]
+            }
+        };
+
+        // Dashboard content templates
+        const dashboardTemplates = {
+            sudotechserve: `
+                <!-- SudoTechServe Dashboard -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Active Projects</p>
+                                <p class="text-2xl font-bold text-foreground" data-mock="true">24</p>
+                            </div>
+                            <div class="bg-primary/10 p-3 rounded-full">
+                                <i class="fas fa-project-diagram text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-muted-foreground">
+                            <span class="text-accent">+12%</span> from last month
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">SaaS Revenue</p>
+                                <p class="text-2xl font-bold text-foreground" data-mock="true">$12,450</p>
+                            </div>
+                            <div class="bg-accent/10 p-3 rounded-full">
+                                <i class="fas fa-dollar-sign text-accent"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-muted-foreground">
+                            <span class="text-accent">+8%</span> from last month
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Active Clients</p>
+                                <p class="text-2xl font-bold text-foreground" data-mock="true">89</p>
+                            </div>
+                            <div class="bg-primary/10 p-3 rounded-full">
+                                <i class="fas fa-users text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-muted-foreground">
+                            <span class="text-accent">+3</span> new this week
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Support Tickets</p>
+                                <p class="text-2xl font-bold text-foreground" data-mock="true">7</p>
+                            </div>
+                            <div class="bg-destructive/10 p-3 rounded-full">
+                                <i class="fas fa-headset text-destructive"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-muted-foreground">
+                            <span class="text-muted-foreground">2 urgent</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Recent Projects</h3>
+                        <div class="space-y-4" data-mock="true">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-code text-primary text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">E-commerce Platform</p>
+                                        <p class="text-xs text-muted-foreground">Client: TechCorp</p>
+                                    </div>
+                                </div>
+                                <span class="bg-accent/10 text-accent px-2 py-1 rounded text-xs">In Progress</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-mobile-alt text-primary text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">Mobile App Development</p>
+                                        <p class="text-xs text-muted-foreground">Client: StartupXYZ</p>
+                                    </div>
+                                </div>
+                                <span class="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">Planning</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-paint-brush text-primary text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">Brand Identity Design</p>
+                                        <p class="text-xs text-muted-foreground">Client: LocalBiz</p>
+                                    </div>
+                                </div>
+                                <span class="bg-accent/10 text-accent px-2 py-1 rounded text-xs">Completed</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">SaaS Products</h3>
+                        <div class="space-y-4" data-mock="true">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-book text-accent text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">Cashbook App</p>
+                                        <p class="text-xs text-muted-foreground">124 active users</p>
+                                    </div>
+                                </div>
+                                <span class="text-accent text-sm font-medium">$2,450/mo</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-cube text-accent text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">AR Virtual Try-On</p>
+                                        <p class="text-xs text-muted-foreground">89 active users</p>
+                                    </div>
+                                </div>
+                                <span class="text-accent text-sm font-medium">$1,890/mo</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-vr-cardboard text-accent text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">Virtual Store Tours</p>
+                                        <p class="text-xs text-muted-foreground">45 active users</p>
+                                    </div>
+                                </div>
+                                <span class="text-accent text-sm font-medium">$950/mo</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            switchtoswag: `
+                <!-- SwitchToSwag Dashboard -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Total Products</p>
+                                <p class="text-2xl font-bold text-foreground" data-mock="true">1,248</p>
+                            </div>
+                            <div class="bg-primary/10 p-3 rounded-full">
+                                <i class="fas fa-box text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-muted-foreground">
+                            <span class="text-accent">+18</span> new this week
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Monthly Sales</p>
+                                <p class="text-2xl font-bold text-foreground" data-mock="true">$28,950</p>
+                            </div>
+                            <div class="bg-accent/10 p-3 rounded-full">
+                                <i class="fas fa-dollar-sign text-accent"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-muted-foreground">
+                            <span class="text-accent">+24%</span> from last month
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Active Orders</p>
+                                <p class="text-2xl font-bold text-foreground" data-mock="true">156</p>
+                            </div>
+                            <div class="bg-primary/10 p-3 rounded-full">
+                                <i class="fas fa-shopping-cart text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-muted-foreground">
+                            <span class="text-muted-foreground">12 processing</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Custom Designs</p>
+                                <p class="text-2xl font-bold text-foreground" data-mock="true">34</p>
+                            </div>
+                            <div class="bg-accent/10 p-3 rounded-full">
+                                <i class="fas fa-palette text-accent"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-muted-foreground">
+                            <span class="text-accent">+5</span> awaiting approval
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Top Products</h3>
+                        <div class="space-y-4" data-mock="true">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-tshirt text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">Custom EDC Pouch</p>
+                                        <p class="text-xs text-muted-foreground">Leather Goods</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium">$45.99</p>
+                                    <p class="text-xs text-muted-foreground">89 sold</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-cube text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">3D Printed Gadget</p>
+                                        <p class="text-xs text-muted-foreground">Accessories</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium">$29.99</p>
+                                    <p class="text-xs text-muted-foreground">124 sold</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-hat-winter text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">Winter Beanie</p>
+                                        <p class="text-xs text-muted-foreground">Winter Wear</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium">$19.99</p>
+                                    <p class="text-xs text-muted-foreground">78 sold</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Recent Orders</h3>
+                        <div class="space-y-4" data-mock="true">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-xs">
+                                        #1249
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">Custom Leather Wallet</p>
+                                        <p class="text-xs text-muted-foreground">John Smith</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="bg-accent/10 text-accent px-2 py-1 rounded text-xs">Processing</span>
+                                    <p class="text-xs text-muted-foreground mt-1">$89.99</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-xs">
+                                        #1248
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">EDC Tactical Pen</p>
+                                        <p class="text-xs text-muted-foreground">Sarah Johnson</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="bg-primary/10 text-primary px-2 py-1 rounded text-xs">Shipped</span>
+                                    <p class="text-xs text-muted-foreground mt-1">$34.99</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-xs">
+                                        #1247
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">Custom Phone Case</p>
+                                        <p class="text-xs text-muted-foreground">Mike Wilson</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">Completed</span>
+                                    <p class="text-xs text-muted-foreground mt-1">$24.99</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            strongtermstrategy: `
+                <!-- StrongTermStrategy Dashboard -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Active RFQs</p>
+                                <p class="text-2xl font-bold text-foreground" data-mock="true">68</p>
+                            </div>
+                            <div class="bg-primary/10 p-3 rounded-full">
+                                <i class="fas fa-file-contract text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-muted-foreground">
+                            <span class="text-accent">+12</span> this week
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Active Suppliers</p>
+                                <p class="text-2xl font-bold text-foreground" data-mock="true">248</p>
+                            </div>
+                            <div class="bg-accent/10 p-3 rounded-full">
+                                <i class="fas fa-truck-loading text-accent"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-muted-foreground">
+                            <span class="text-muted-foreground">3 countries</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">In Transit</p>
+                                <p class="text-2xl font-bold text-foreground" data-mock="true">156</p>
+                            </div>
+                            <div class="bg-primary/10 p-3 rounded-full">
+                                <i class="fas fa-ship text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-muted-foreground">
+                            <span class="text-accent">18</span> arriving today
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Production Orders</p>
+                                <p class="text-2xl font-bold text-foreground" data-mock="true">34</p>
+                            </div>
+                            <div class="bg-accent/10 p-3 rounded-full">
+                                <i class="fas fa-industry text-accent"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-muted-foreground">
+                            <span class="text-accent">8</span> in QC phase
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Multi-Country Operations</h3>
+                        <div class="space-y-4" data-mock="true">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                        🇺🇸
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">USA Operations</p>
+                                        <p class="text-xs text-muted-foreground">24 active suppliers</p>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-medium text-primary">Active</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                        🇨🇳
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">China Operations</p>
+                                        <p class="text-xs text-muted-foreground">156 active suppliers</p>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-medium text-primary">Active</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                        🇧🇩
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">Bangladesh Operations</p>
+                                        <p class="text-xs text-muted-foreground">68 active suppliers</p>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-medium text-primary">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Recent RFQs</h3>
+                        <div class="space-y-4" data-mock="true">
+                            <div class="border-l-4 border-primary pl-3">
+                                <p class="text-sm font-medium">Knit Fabric Sourcing</p>
+                                <p class="text-xs text-muted-foreground">Cotton 180GSM, 5000m</p>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="bg-accent/10 text-accent px-2 py-1 rounded text-xs">Quoted</span>
+                                    <span class="text-xs text-muted-foreground">3 responses</span>
+                                </div>
+                            </div>
+                            <div class="border-l-4 border-primary pl-3">
+                                <p class="text-sm font-medium">Winter Jacket Production</p>
+                                <p class="text-xs text-muted-foreground">1000 units, Size S-XL</p>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">Pending</span>
+                                    <span class="text-xs text-muted-foreground">1 response</span>
+                                </div>
+                            </div>
+                            <div class="border-l-4 border-primary pl-3">
+                                <p class="text-sm font-medium">Leather Accessories</p>
+                                <p class="text-xs text-muted-foreground">EDC Pouches, 500 units</p>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="bg-primary/10 text-primary px-2 py-1 rounded text-xs">Approved</span>
+                                    <span class="text-xs text-muted-foreground">Production</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Manufacturing Pipeline</h3>
+                        <div class="space-y-4" data-mock="true">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">Fabric Selection</p>
+                                    <div class="w-full bg-muted rounded-full h-2 mt-1">
+                                        <div class="bg-primary h-2 rounded-full" style="width: 75%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-medium">75%</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">Pattern Design</p>
+                                    <div class="w-full bg-muted rounded-full h-2 mt-1">
+                                        <div class="bg-accent h-2 rounded-full" style="width: 45%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-medium">45%</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">Production Setup</p>
+                                    <div class="w-full bg-muted rounded-full h-2 mt-1">
+                                        <div class="bg-primary h-2 rounded-full" style="width: 20%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-medium">20%</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium">Quality Control</p>
+                                    <div class="w-full bg-muted rounded-full h-2 mt-1">
+                                        <div class="bg-muted h-2 rounded-full"></div>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-medium">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+
+        function switchTenant(tenantId) {
+            const config = tenantConfigs[tenantId];
+            if (!config) return;
+            
+            // Update theme
+            document.body.className = `${config.theme} bg-background text-foreground`;
+            
+            // Update brand information
+            document.getElementById('brand-name').textContent = config.name;
+            document.getElementById('brand-tagline').textContent = config.tagline;
+            document.getElementById('page-title').textContent = config.pageTitle;
+            document.getElementById('page-description').textContent = config.pageDescription;
+            
+            // Update navigation
+            const navigationElement = document.getElementById('navigation');
+            navigationElement.innerHTML = config.navigation.map(item => `
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    item.active 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                }">
+                    <i class="${item.icon}"></i>
+                    <span>${item.label}</span>
+                </a>
+            `).join('');
+            
+            // Update dashboard content
+            document.getElementById('dashboard-content').innerHTML = dashboardTemplates[tenantId];
+            
+            // Update tenant switcher active state
+            document.querySelectorAll('.fixed .flex button').forEach((btn, index) => {
+                btn.className = index === Object.keys(tenantConfigs).indexOf(tenantId)
+                    ? 'px-3 py-2 text-xs rounded bg-primary text-primary-foreground'
+                    : 'px-3 py-2 text-xs rounded hover:bg-secondary';
+            });
+        }
+        
+        // Initialize with SudoTechServe
+        switchTenant('sudotechserve');
+        
+        // TODO: Implement business logic, API calls, or state management
+        // TODO: Add real-time sync functionality with ERPNext and Saleor
+        // TODO: Implement role-based access control
+        // TODO: Add real data binding and state management
+    </script>
+</body>
+</html>

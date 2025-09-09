@@ -1,0 +1,7 @@
+API Endpoints
+/api/tenants - Returns all tenants from database
+/api/tenants/:slug - Returns specific tenant
+/api/tenants/:slug/sync-status - Returns sync status from database
+/api/tenants/:slug/erpnext/items - ERPNext integration working
+/api/tenants/:slug/saleor/products - Saleor integration working
+/api/tenants/:slug/logs - Integration logs stored in database

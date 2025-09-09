@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tenant Business Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                }
+            }
+        }
+    };
+    </script>
+    <style>
+        :root {
+            --background: hsl(210 40% 96%);
+            --foreground: hsl(222 47% 11%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(222 47% 11%);
+            --primary: hsl(210 100% 56%);
+            --primary-foreground: hsl(0 0% 100%);
+            --secondary: hsl(210 40% 94%);
+            --secondary-foreground: hsl(222 47% 11%);
+            --muted: hsl(210 40% 94%);
+            --muted-foreground: hsl(215 16% 47%);
+            --border: hsl(214 32% 91%);
+            --input: hsl(214 32% 91%);
+            --radius: 0.5rem;
+        }
+        
+        .menu-item:hover {
+            background-color: hsl(210 40% 94%);
+        }
+        
+        .menu-item.active {
+            background-color: hsl(210 100% 56%);
+            color: white;
+        }
+        
+        .shortcut-card:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease-in-out;
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-background font-sans">
+    <!-- @COMPONENT: MultiTenantApp [Main application container] -->
+    <div class="flex h-screen">
+        <!-- @COMPONENT: Sidebar [Navigation sidebar] -->
+        <div class="w-70 bg-card border-r border-border flex flex-col">
+            <!-- Tenant Selector -->
+            <div class="p-4 border-b border-border">
+                <select class="w-full p-2 rounded-md bg-secondary border border-border text-sm" data-bind="selectedTenant" data-event="change:handleTenantChange">
+                    <option value="sudotechserve" data-mock="true">SudoTechServe (Agency/SaaS)</option>
+                    <option value="switchtoswag" data-mock="true">SwitchToSwag (E-commerce)</option>
+                    <option value="strongtermstrategy" data-mock="true">StrongTermStrategy (Procurement)</option>
+                </select>
+            </div>
+            
+            <!-- User Profile -->
+            <div class="p-4 border-b border-border">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-semibold" data-mock="true">
+                        U
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-foreground" data-mock="true" data-bind="user.name">User Name</p>
+                        <p class="text-xs text-muted-foreground" data-mock="true" data-bind="user.role">Administrator</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <nav class="flex-1 overflow-y-auto p-2">
+                <!-- @STATE: selectedTenant:string = "sudotechserve" -->
+                <!-- @STATE: expandedSections:string[] = ["main"] -->
+                
+                <!-- SudoTechServe Menu -->
+                <div id="sudotechserve-menu" class="tenant-menu">
+                    <div class="menu-item active p-3 rounded-md mb-1 cursor-pointer flex items-center space-x-3" data-event="click:navigateToHome">
+                        <i class="fas fa-home w-4"></i>
+                        <span class="text-sm">Dashboard</span>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <div class="menu-item p-3 rounded-md mb-1 cursor-pointer flex items-center justify-between" data-event="click:toggleSection:projects">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-project-diagram w-4"></i>
+                                <span class="text-sm">Projects</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs transform transition-transform" data-expanded="projects"></i>
+                        </div>
+                        <div class="ml-4 pl-4 border-l border-border space-y-1" data-section="projects">
+                            <div class="menu-item p-2 rounded-md cursor-pointer text-sm text-muted-foreground hover:text-foreground" data-event="click:navigateToProjects">
+                                Active Projects
+                            </div>
+                            <div class="menu-item p-2 rounded-md cursor-pointer text-sm text-muted-foreground hover:text-foreground" data-event="click:navigateToTasks">
+                                Task Management
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-item p-3 rounded-md mb-1 cursor-pointer flex items-center space-x-3" data-event="click:navigateToClients">
+                        <i class="fas fa-users w-4"></i>
+                        <span class="text-sm">Clients</span>
+                    </div>
+                    
+                    <div class="menu-item p-3 rounded-md mb-1 cursor-pointer flex items-center space-x-3" data-event="click:navigateToSaas">
+                        <i class="fas fa-cloud w-4"></i>
+                        <span class="text-sm">SaaS Products</span>
+                    </div>
+                    
+                    <div class="menu-item p-3 rounded-md mb-1 cursor-pointer flex items-center space-x-3" data-event="click:navigateToBilling">
+                        <i class="fas fa-file-invoice w-4"></i>
+                        <span class="text-sm">Billing</span>
+                    </div>
+                    
+                    <div class="menu-item p-3 rounded-md mb-1 cursor-pointer flex items-center space-x-3" data-event="click:navigateToSupport">
+                        <i class="fas fa-headset w-4"></i>
+                        <span class="text-sm">Support</span>
+                    </div>
+                </div>
+                
+                <!-- Settings -->
+                <div class="mt-6 pt-4 border-t border-border">
+                    <div class="menu-item p-3 rounded-md mb-1 cursor-pointer flex items-center space-x-3" data-event="click:navigateToSettings">
+                        <i class="fas fa-cog w-4"></i>
+                        <span class="text-sm">Settings</span>
+                    </div>
+                    
+                    <div class="menu-item p-3 rounded-md mb-1 cursor-pointer flex items-center space-x-3" data-event="click:navigateToIntegrations">
+                        <i class="fas fa-plug w-4"></i>
+                        <span class="text-sm">Integrations</span>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Sync Controls -->
+            <div class="p-4 border-t border-border space-y-2">
+                <button class="w-full p-2 bg-primary text-primary-foreground rounded-md text-sm hover:opacity-90 transition-opacity" data-event="click:syncERPNext" data-implementation="Should trigger ERPNext sync process">
+                    <i class="fas fa-sync mr-2"></i>Sync ERPNext
+                </button>
+                <button class="w-full p-2 bg-secondary text-secondary-foreground rounded-md text-sm hover:bg-opacity-80 transition-opacity" data-event="click:syncSaleor" data-implementation="Should trigger Saleor sync process">
+                    <i class="fas fa-store mr-2"></i>Sync Saleor
+                </button>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Sidebar -->
+        
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col">
+            <!-- @COMPONENT: Header [Top navigation header] -->
+            <header class="h-15 bg-card border-b border-border flex items-center justify-between px-6">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-lg font-semibold text-foreground" data-bind="currentPageTitle">Dashboard</h1>
+                    <span class="text-sm text-muted-foreground" data-bind="currentTenant.displayName" data-mock="true">SudoTechServe</span>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Search Bar -->
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            placeholder="Search or type a command (⌘ + G)" 
+                            class="w-80 p-2 pl-10 pr-4 rounded-md bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            data-event="input:handleSearch"
+                            data-mock="true"
+                        />
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm"></i>
+                    </div>
+                    
+                    <!-- User Menu -->
+                    <div class="flex items-center space-x-2">
+                        <button class="p-2 rounded-md hover:bg-secondary" data-event="click:toggleNotifications">
+                            <i class="fas fa-bell text-muted-foreground"></i>
+                        </button>
+                        <button class="p-2 rounded-md hover:bg-secondary" data-event="click:showHelp">
+                            <i class="fas fa-question-circle text-muted-foreground"></i>
+                        </button>
+                        <button class="p-2 rounded-md hover:bg-secondary" data-event="click:toggleUserMenu">
+                            <i class="fas fa-user text-muted-foreground"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: Header -->
+            
+            <!-- @COMPONENT: MainContent [Dashboard content area] -->
+            <main class="flex-1 p-6 overflow-y-auto">
+                <!-- Welcome Section -->
+                <div class="mb-8">
+                    <div class="bg-card rounded-lg p-6 border border-border">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h2 class="text-xl font-semibold text-foreground mb-2" data-mock="true">Let's begin your journey with SudoTechServe</h2>
+                                <p class="text-muted-foreground mb-4" data-mock="true">Project, Client, SaaS Product and Billing Management</p>
+                                
+                                <div class="space-y-3">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                                            <i class="fas fa-check text-primary-foreground text-xs"></i>
+                                        </div>
+                                        <span class="text-sm">Create a Project</span>
+                                        <button class="text-xs text-muted-foreground hover:text-foreground" data-event="click:skipStep">Skip</button>
+                                    </div>
+                                    
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-6 h-6 rounded-full border-2 border-border"></div>
+                                        <span class="text-sm">Create a Client</span>
+                                        <button class="text-xs text-muted-foreground hover:text-foreground" data-event="click:skipStep">Skip</button>
+                                    </div>
+                                    
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-6 h-6 rounded-full border-2 border-border"></div>
+                                        <span class="text-sm">Create Your First Invoice</span>
+                                        <button class="text-xs text-muted-foreground hover:text-foreground" data-event="click:skipStep">Skip</button>
+                                    </div>
+                                </div>
+                                
+                                <button class="mt-4 bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm hover:opacity-90" data-event="click:createProject">
+                                    Create a new Project
+                                </button>
+                            </div>
+                            
+                            <button class="text-muted-foreground hover:text-foreground" data-event="click:dismissWelcome">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Your Shortcuts Section -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-foreground mb-4">Your Shortcuts</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <!-- @MAP: shortcuts.map(shortcut => ( -->
+                        <div class="shortcut-card bg-card rounded-lg p-4 border border-border cursor-pointer hover:shadow-md transition-shadow" data-event="click:navigateToShortcut:project" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-project-diagram text-primary text-lg"></i>
+                                <span class="text-sm font-medium">Project</span>
+                                <i class="fas fa-external-link-alt text-xs text-muted-foreground ml-auto"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="shortcut-card bg-card rounded-lg p-4 border border-border cursor-pointer hover:shadow-md transition-shadow" data-event="click:navigateToShortcut:client" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-user-tie text-primary text-lg"></i>
+                                <span class="text-sm font-medium">Client</span>
+                                <i class="fas fa-external-link-alt text-xs text-muted-foreground ml-auto"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="shortcut-card bg-card rounded-lg p-4 border border-border cursor-pointer hover:shadow-md transition-shadow" data-event="click:navigateToShortcut:saas-product" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-cloud text-primary text-lg"></i>
+                                <span class="text-sm font-medium">SaaS Product</span>
+                                <i class="fas fa-external-link-alt text-xs text-muted-foreground ml-auto"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="shortcut-card bg-card rounded-lg p-4 border border-border cursor-pointer hover:shadow-md transition-shadow" data-event="click:navigateToShortcut:invoice" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-file-invoice text-primary text-lg"></i>
+                                <span class="text-sm font-medium">Sales Invoice</span>
+                                <i class="fas fa-external-link-alt text-xs text-muted-foreground ml-auto"></i>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+                
+                <!-- Reports & Masters Section -->
+                <div>
+                    <h3 class="text-lg font-semibold text-foreground mb-4">Reports & Masters</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Projects Category -->
+                        <div class="bg-card rounded-lg p-6 border border-border">
+                            <h4 class="font-semibold text-foreground mb-4">Projects</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between cursor-pointer hover:text-primary" data-event="click:navigateToReport:project-list" data-mock="true">
+                                    <span class="text-sm">Project List</span>
+                                    <i class="fas fa-external-link-alt text-xs text-muted-foreground"></i>
+                                </div>
+                                <div class="flex items-center justify-between cursor-pointer hover:text-primary" data-event="click:navigateToReport:project-status" data-mock="true">
+                                    <span class="text-sm">Project Status</span>
+                                    <i class="fas fa-external-link-alt text-xs text-muted-foreground"></i>
+                                </div>
+                                <div class="flex items-center justify-between cursor-pointer hover:text-primary" data-event="click:navigateToReport:timesheet" data-mock="true">
+                                    <span class="text-sm">Timesheet</span>
+                                    <i class="fas fa-external-link-alt text-xs text-muted-foreground"></i>
+                                </div>
+                                <div class="flex items-center justify-between cursor-pointer hover:text-primary" data-event="click:navigateToReport:task" data-mock="true">
+                                    <span class="text-sm">Task</span>
+                                    <i class="fas fa-external-link-alt text-xs text-muted-foreground"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- SaaS Category -->
+                        <div class="bg-card rounded-lg p-6 border border-border">
+                            <h4 class="font-semibold text-foreground mb-4">SaaS</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between cursor-pointer hover:text-primary" data-event="click:navigateToReport:subscription" data-mock="true">
+                                    <span class="text-sm">Subscription</span>
+                                    <i class="fas fa-external-link-alt text-xs text-muted-foreground"></i>
+                                </div>
+                                <div class="flex items-center justify-between cursor-pointer hover:text-primary" data-event="click:navigateToReport:usage-metrics" data-mock="true">
+                                    <span class="text-sm">Usage Metrics</span>
+                                    <i class="fas fa-external-link-alt text-xs text-muted-foreground"></i>
+                                </div>
+                                <div class="flex items-center justify-between cursor-pointer hover:text-primary" data-event="click:navigateToReport:product-analytics" data-mock="true">
+                                    <span class="text-sm">Product Analytics</span>
+                                    <i class="fas fa-external-link-alt text-xs text-muted-foreground"></i>
+                                </div>
+                                <div class="flex items-center justify-between cursor-pointer hover:text-primary" data-event="click:navigateToReport:user-activity" data-mock="true">
+                                    <span class="text-sm">User Activity</span>
+                                    <i class="fas fa-external-link-alt text-xs text-muted-foreground"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- CRM Category -->
+                        <div class="bg-card rounded-lg p-6 border border-border">
+                            <h4 class="font-semibold text-foreground mb-4">CRM</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between cursor-pointer hover:text-primary" data-event="click:navigateToReport:leads" data-mock="true">
+                                    <span class="text-sm">Lead</span>
+                                    <i class="fas fa-external-link-alt text-xs text-muted-foreground"></i>
+                                </div>
+                                <div class="flex items-center justify-between cursor-pointer hover:text-primary" data-event="click:navigateToReport:opportunities" data-mock="true">
+                                    <span class="text-sm">Opportunities</span>
+                                    <i class="fas fa-external-link-alt text-xs text-muted-foreground"></i>
+                                </div>
+                                <div class="flex items-center justify-between cursor-pointer hover:text-primary" data-event="click:navigateToReport:client-group" data-mock="true">
+                                    <span class="text-sm">Client Group</span>
+                                    <i class="fas fa-external-link-alt text-xs text-muted-foreground"></i>
+                                </div>
+                                <div class="flex items-center justify-between cursor-pointer hover:text-primary" data-event="click:navigateToReport:support-tickets" data-mock="true">
+                                    <span class="text-sm">Support Tickets</span>
+                                    <i class="fas fa-external-link-alt text-xs text-muted-foreground"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <!-- @END_COMPONENT: MainContent -->
+        </div>
+    </div>
+    <!-- @END_COMPONENT: MultiTenantApp -->
+    
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        
+        (function() {
+            // Tenant switching functionality
+            function handleTenantChange(event) {
+                const selectedTenant = event.target.value;
+                console.log('Switching to tenant:', selectedTenant);
+                
+                // Hide all tenant menus
+                document.querySelectorAll('.tenant-menu').forEach(menu => {
+                    menu.style.display = 'none';
+                });
+                
+                // Show selected tenant menu
+                const tenantMenu = document.getElementById(selectedTenant + '-menu');
+                if (tenantMenu) {
+                    tenantMenu.style.display = 'block';
+                }
+                
+                // Update tenant-specific content
+                updateTenantContent(selectedTenant);
+            }
+            
+            function updateTenantContent(tenant) {
+                const tenantConfigs = {
+                    'sudotechserve': {
+                        title: 'SudoTechServe Dashboard',
+                        welcome: 'Let\'s begin your journey with SudoTechServe',
+                        subtitle: 'Project, Client, SaaS Product and Billing Management'
+                    },
+                    'switchtoswag': {
+                        title: 'SwitchToSwag Dashboard', 
+                        welcome: 'Let\'s begin your journey with SwitchToSwag',
+                        subtitle: 'E-commerce, Design Studio and Inventory Management'
+                    },
+                    'strongtermstrategy': {
+                        title: 'StrongTermStrategy Dashboard',
+                        welcome: 'Let\'s begin your journey with StrongTermStrategy', 
+                        subtitle: 'Procurement, Manufacturing and Supply Chain Management'
+                    }
+                };
+                
+                const config = tenantConfigs[tenant];
+                if (config) {
+                    // Update page title and content
+                    document.querySelector('[data-bind="currentPageTitle"]').textContent = 'Dashboard';
+                    document.querySelector('[data-bind="currentTenant.displayName"]').textContent = config.title;
+                }
+            }
+            
+            // Menu expansion/collapse
+            function toggleSection(section) {
+                const sectionElement = document.querySelector(`[data-section="${section}"]`);
+                const chevron = document.querySelector(`[data-expanded="${section}"]`);
+                
+                if (sectionElement.style.display === 'none' || !sectionElement.style.display) {
+                    sectionElement.style.display = 'block';
+                    chevron.style.transform = 'rotate(180deg)';
+                } else {
+                    sectionElement.style.display = 'none';
+                    chevron.style.transform = 'rotate(0deg)';
+                }
+            }
+            
+            // Sync operations
+            function syncERPNext() {
+                console.log('Syncing with ERPNext...');
+                // TODO: Implement ERPNext sync logic
+            }
+            
+            function syncSaleor() {
+                console.log('Syncing with Saleor...');
+                // TODO: Implement Saleor sync logic
+            }
+            
+            // Initialize default tenant
+            document.addEventListener('DOMContentLoaded', function() {
+                updateTenantContent('sudotechserve');
+            });
+            
+            // Make functions globally available for event handlers
+            window.handleTenantChange = handleTenantChange;
+            window.toggleSection = toggleSection;
+            window.syncERPNext = syncERPNext;
+            window.syncSaleor = syncSaleor;
+        })();
+    </script>
+</body>
+</html>

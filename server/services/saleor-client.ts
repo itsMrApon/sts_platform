@@ -19,6 +19,7 @@ export class SaleorClient {
     
     const headers = {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       ...(this.config.token && {
         'Authorization': `Bearer ${this.config.token}`
       }),
@@ -35,7 +36,8 @@ export class SaleorClient {
       });
 
       if (!response.ok) {
-        throw new Error(`Saleor API error: ${response.status} ${response.statusText}`);
+        const bodyText = await response.text().catch(() => '');
+        throw new Error(`Saleor API error: ${response.status} ${response.statusText}${bodyText ? ` :: ${bodyText}` : ''}`);
       }
 
       const data = await response.json();
@@ -78,21 +80,6 @@ export class SaleorClient {
               id
               name
               slug
-              description
-              category {
-                name
-              }
-              variants {
-                id
-                name
-                sku
-                pricing {
-                  price {
-                    amount
-                    currency
-                  }
-                }
-              }
             }
           }
           pageInfo {
@@ -183,12 +170,218 @@ export class SaleorClient {
   }
 
   async handleWebhook(payload: any): Promise<void> {
+    try {
+      const eventType = payload.event_type || 'unknown';
+      const objectId = payload.object_id || 'unknown';
+      
+      // Log the webhook event
+      await storage.createIntegrationLog({
+        tenantId: this.tenantId,
+        source: "saleor",
+        action: `webhook_${eventType}`,
+        status: "success",
+        payload: {
+          event_type: eventType,
+          object_id: objectId,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+      // Handle different webhook events
+      switch (eventType) {
+        // Product Events
+        case 'PRODUCT_CREATED':
+        case 'PRODUCT_UPDATED':
+        case 'PRODUCT_DELETED':
+          await this.updateSyncStatus(await this.getProductCount());
+          break;
+        
+        // Product Variant Events
+        case 'PRODUCT_VARIANT_CREATED':
+        case 'PRODUCT_VARIANT_UPDATED':
+        case 'PRODUCT_VARIANT_DELETED':
+          await this.logVariantEvent(eventType, objectId);
+          break;
+        
+        // Stock Events
+        case 'PRODUCT_VARIANT_STOCK_UPDATED':
+        case 'PRODUCT_VARIANT_BACK_IN_STOCK':
+        case 'PRODUCT_VARIANT_OUT_OF_STOCK':
+          await this.logStockEvent(eventType, objectId);
+          break;
+        
+        // Order Events
+        case 'ORDER_CREATED':
+        case 'ORDER_UPDATED':
+        case 'ORDER_CANCELLED':
+          await this.logOrderEvent(eventType, objectId);
+          break;
+        
+        // Customer Events
+        case 'CUSTOMER_CREATED':
+        case 'CUSTOMER_UPDATED':
+          await this.logCustomerEvent(eventType, objectId);
+          break;
+        
+        // Inventory Events
+        case 'PRODUCT_VARIANT_STOCK_UPDATED':
+          await this.logInventoryEvent(eventType, objectId);
+          break;
+        
+        // Collection Events
+        case 'COLLECTION_CREATED':
+        case 'COLLECTION_UPDATED':
+        case 'COLLECTION_DELETED':
+          await this.logCollectionEvent(eventType, objectId);
+          break;
+        
+        // Category Events
+        case 'CATEGORY_CREATED':
+        case 'CATEGORY_UPDATED':
+        case 'CATEGORY_DELETED':
+          await this.logCategoryEvent(eventType, objectId);
+          break;
+        
+        // Checkout Events
+        case 'CHECKOUT_CREATED':
+        case 'CHECKOUT_UPDATED':
+          await this.logCheckoutEvent(eventType, objectId);
+          break;
+        
+        default:
+          console.log(`Unhandled webhook event: ${eventType}`);
+      }
+    } catch (error) {
+      await storage.createIntegrationLog({
+        tenantId: this.tenantId,
+        source: "saleor",
+        action: "webhook_error",
+        status: "error",
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        payload
+      });
+      throw error;
+    }
+  }
+
+  private async getProductCount(): Promise<number> {
+    try {
+      const products = await this.getProducts(1);
+      return products.products?.edges?.length || 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  private async logOrderEvent(eventType: string, objectId: string): Promise<void> {
     await storage.createIntegrationLog({
       tenantId: this.tenantId,
       source: "saleor",
-      action: "webhook",
+      action: `order_${eventType.toLowerCase()}`,
       status: "success",
-      payload
+      payload: {
+        event_type: eventType,
+        order_id: objectId,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+
+  private async logCustomerEvent(eventType: string, objectId: string): Promise<void> {
+    await storage.createIntegrationLog({
+      tenantId: this.tenantId,
+      source: "saleor",
+      action: `customer_${eventType.toLowerCase()}`,
+      status: "success",
+      payload: {
+        event_type: eventType,
+        customer_id: objectId,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+
+  private async logInventoryEvent(eventType: string, objectId: string): Promise<void> {
+    await storage.createIntegrationLog({
+      tenantId: this.tenantId,
+      source: "saleor",
+      action: `inventory_${eventType.toLowerCase()}`,
+      status: "success",
+      payload: {
+        event_type: eventType,
+        variant_id: objectId,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+
+  private async logCollectionEvent(eventType: string, objectId: string): Promise<void> {
+    await storage.createIntegrationLog({
+      tenantId: this.tenantId,
+      source: "saleor",
+      action: `collection_${eventType.toLowerCase()}`,
+      status: "success",
+      payload: {
+        event_type: eventType,
+        collection_id: objectId,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+
+  private async logCategoryEvent(eventType: string, objectId: string): Promise<void> {
+    await storage.createIntegrationLog({
+      tenantId: this.tenantId,
+      source: "saleor",
+      action: `category_${eventType.toLowerCase()}`,
+      status: "success",
+      payload: {
+        event_type: eventType,
+        category_id: objectId,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+
+  private async logCheckoutEvent(eventType: string, objectId: string): Promise<void> {
+    await storage.createIntegrationLog({
+      tenantId: this.tenantId,
+      source: "saleor",
+      action: `checkout_${eventType.toLowerCase()}`,
+      status: "success",
+      payload: {
+        event_type: eventType,
+        checkout_id: objectId,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+
+  private async logVariantEvent(eventType: string, objectId: string): Promise<void> {
+    await storage.createIntegrationLog({
+      tenantId: this.tenantId,
+      source: "saleor",
+      action: `variant_${eventType.toLowerCase()}`,
+      status: "success",
+      payload: {
+        event_type: eventType,
+        variant_id: objectId,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+
+  private async logStockEvent(eventType: string, objectId: string): Promise<void> {
+    await storage.createIntegrationLog({
+      tenantId: this.tenantId,
+      source: "saleor",
+      action: `stock_${eventType.toLowerCase()}`,
+      status: "success",
+      payload: {
+        event_type: eventType,
+        variant_id: objectId,
+        timestamp: new Date().toISOString()
+      }
     });
   }
 }

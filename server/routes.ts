@@ -65,7 +65,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }, tenant.id);
 
       const items = await client.getItems();
-      await client.updateSyncStatus(items.length);
+      const count = Array.isArray(items) ? items.length : (items?.length ?? 0);
+      await client.updateSyncStatus(count);
       
       res.json(items);
     } catch (error) {

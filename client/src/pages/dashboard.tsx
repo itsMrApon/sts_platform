@@ -4,6 +4,7 @@ import { OnboardingCard } from "@/components/dashboard/onboarding-card";
 import { ShortcutsGrid } from "@/components/dashboard/shortcuts-grid";
 import { ReportsGrid } from "@/components/dashboard/reports-grid";
 import { IntegrationStatus } from "@/components/dashboard/integration-status";
+import { WebhookLogs } from "@/components/dashboard/webhook-logs";
 
 export default function Dashboard() {
   return (
@@ -18,6 +19,7 @@ export default function Dashboard() {
           <ShortcutsGrid />
           <ReportsGrid />
           <IntegrationStatus />
+          <WebhookLogs />
         </main>
       </div>
     </div>

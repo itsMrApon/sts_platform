@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STS Multi-Tenant Business Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                    chart: {
+                        "1": "var(--chart-1)",
+                        "2": "var(--chart-2)",
+                        "3": "var(--chart-3)",
+                        "4": "var(--chart-4)",
+                        "5": "var(--chart-5)",
+                    }
+                },
+                fontFamily: {
+                    sans: ["var(--font-sans)"],
+                }
+            },
+        }
+    };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --background: hsl(0 0% 100%);
+            --foreground: hsl(240 10% 3.9%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(240 10% 3.9%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(240 10% 3.9%);
+            --primary: hsl(221 83% 53%);
+            --primary-foreground: hsl(210 40% 98%);
+            --secondary: hsl(210 40% 96%);
+            --secondary-foreground: hsl(222 47% 11%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(215 16% 47%);
+            --accent: hsl(210 40% 96%);
+            --accent-foreground: hsl(222 47% 11%);
+            --destructive: hsl(0 84% 60%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(214 32% 91%);
+            --input: hsl(214 32% 91%);
+            --ring: hsl(221 83% 53%);
+            --radius: 8px;
+            --chart-1: hsl(12 76% 61%);
+            --chart-2: hsl(173 58% 39%);
+            --chart-3: hsl(197 37% 24%);
+            --chart-4: hsl(43 74% 66%);
+            --chart-5: hsl(27 87% 67%);
+            --font-sans: "Inter", system-ui, sans-serif;
+        }
+        
+        .dark {
+            --background: hsl(240 10% 3.9%);
+            --foreground: hsl(0 0% 98%);
+            --card: hsl(240 10% 3.9%);
+            --card-foreground: hsl(0 0% 98%);
+            --popover: hsl(240 10% 3.9%);
+            --popover-foreground: hsl(0 0% 98%);
+            --primary: hsl(217 91% 60%);
+            --primary-foreground: hsl(222 47% 11%);
+            --secondary: hsl(240 4% 16%);
+            --secondary-foreground: hsl(0 0% 98%);
+            --muted: hsl(240 4% 16%);
+            --muted-foreground: hsl(240 5% 65%);
+            --accent: hsl(240 4% 16%);
+            --accent-foreground: hsl(0 0% 98%);
+            --destructive: hsl(0 73% 57%);
+            --destructive-foreground: hsl(0 0% 98%);
+            --border: hsl(240 4% 16%);
+            --input: hsl(240 4% 16%);
+            --ring: hsl(217 91% 60%);
+            --chart-1: hsl(12 76% 61%);
+            --chart-2: hsl(173 58% 39%);
+            --chart-3: hsl(197 37% 24%);
+            --chart-4: hsl(43 74% 66%);
+            --chart-5: hsl(27 87% 67%);
+        }
+        
+        body {
+            font-family: var(--font-sans);
+        }
+        
+        .sidebar-transition {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground">
+    <!-- @COMPONENT: MainLayout -->
+    <div class="min-h-screen flex">
+        
+        <!-- @COMPONENT: Sidebar -->
+        <aside class="w-64 bg-card border-r border-border sidebar-transition" id="sidebar">
+            <div class="p-6">
+                <!-- @COMPONENT: TenantSelector -->
+                <div class="mb-6">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                            <i class="fas fa-cube text-primary-foreground text-sm"></i>
+                        </div>
+                        <span class="font-semibold text-foreground">STS Platform</span>
+                    </div>
+                    
+                    <!-- Tenant Selector Dropdown -->
+                    <div class="relative">
+                        <button class="w-full flex items-center justify-between px-3 py-2 bg-muted rounded-md text-sm text-muted-foreground hover:bg-accent transition-colors">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-building text-primary text-xs"></i>
+                                <span data-bind="currentTenant.name">SudoTechServe</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        
+                        <!-- @FUNCTIONALITY: Dropdown should show tenant list and allow switching -->
+                        <div class="hidden absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-md shadow-lg z-50">
+                            <div class="p-1">
+                                <div class="px-3 py-2 text-xs text-muted-foreground font-medium">Switch Tenant</div>
+                                <div class="px-3 py-2 hover:bg-accent rounded-sm cursor-pointer flex items-center space-x-2">
+                                    <i class="fas fa-code text-blue-500 text-xs"></i>
+                                    <span>SudoTechServe</span>
+                                </div>
+                                <div class="px-3 py-2 hover:bg-accent rounded-sm cursor-pointer flex items-center space-x-2">
+                                    <i class="fas fa-shopping-cart text-green-500 text-xs"></i>
+                                    <span>SwitchToSwag</span>
+                                </div>
+                                <div class="px-3 py-2 hover:bg-accent rounded-sm cursor-pointer flex items-center space-x-2">
+                                    <i class="fas fa-industry text-orange-500 text-xs"></i>
+                                    <span>StrongTermStrategy</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- @COMPONENT: Navigation -->
+                <nav class="space-y-2">
+                    <div>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 bg-primary text-primary-foreground rounded-md">
+                            <i class="fas fa-tachometer-alt text-sm"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <div class="px-3 py-2 text-xs font-medium text-muted-foreground uppercase">Business Operations</div>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-colors">
+                            <i class="fas fa-box text-sm"></i>
+                            <span>Products</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-colors">
+                            <i class="fas fa-shopping-bag text-sm"></i>
+                            <span>Orders</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-colors">
+                            <i class="fas fa-warehouse text-sm"></i>
+                            <span>Inventory</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-colors">
+                            <i class="fas fa-truck text-sm"></i>
+                            <span>Procurement</span>
+                        </a>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <div class="px-3 py-2 text-xs font-medium text-muted-foreground uppercase">Manufacturing</div>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-colors">
+                            <i class="fas fa-cogs text-sm"></i>
+                            <span>Work Orders</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-colors">
+                            <i class="fas fa-list text-sm"></i>
+                            <span>BOM</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-colors">
+                            <i class="fas fa-route text-sm"></i>
+                            <span>Routing</span>
+                        </a>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <div class="px-3 py-2 text-xs font-medium text-muted-foreground uppercase">Integrations</div>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-colors">
+                            <i class="fas fa-sync text-sm"></i>
+                            <span>ERPNext</span>
+                            <span class="ml-auto w-2 h-2 bg-green-500 rounded-full" title="Connected"></span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-colors">
+                            <i class="fas fa-store text-sm"></i>
+                            <span>Saleor</span>
+                            <span class="ml-auto w-2 h-2 bg-green-500 rounded-full" title="Connected"></span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-colors">
+                            <i class="fas fa-globe text-sm"></i>
+                            <span>Marketplaces</span>
+                        </a>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <div class="px-3 py-2 text-xs font-medium text-muted-foreground uppercase">System</div>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-colors">
+                            <i class="fas fa-users text-sm"></i>
+                            <span>Users</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-colors">
+                            <i class="fas fa-cog text-sm"></i>
+                            <span>Settings</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </aside>
+        
+        <!-- @COMPONENT: MainContent -->
+        <main class="flex-1 flex flex-col">
+            
+            <!-- @COMPONENT: TopBar -->
+            <header class="bg-card border-b border-border px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <button class="lg:hidden">
+                            <i class="fas fa-bars text-muted-foreground"></i>
+                        </button>
+                        <!-- @COMPONENT: Breadcrumb -->
+                        <nav class="flex items-center space-x-2 text-sm">
+                            <a href="#" class="text-muted-foreground hover:text-foreground">Home</a>
+                            <i class="fas fa-chevron-right text-xs text-muted-foreground"></i>
+                            <span class="text-foreground">Dashboard</span>
+                        </nav>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Sync Status Indicator -->
+                        <div class="flex items-center space-x-2 px-3 py-1 bg-muted rounded-full">
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span class="text-xs text-muted-foreground">Syncing</span>
+                        </div>
+                        
+                        <!-- Theme Toggle -->
+                        <button class="p-2 hover:bg-accent rounded-md">
+                            <i class="fas fa-moon text-muted-foreground"></i>
+                        </button>
+                        
+                        <!-- Notifications -->
+                        <button class="p-2 hover:bg-accent rounded-md relative">
+                            <i class="fas fa-bell text-muted-foreground"></i>
+                            <span class="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-xs text-destructive-foreground rounded-full flex items-center justify-center">3</span>
+                        </button>
+                        
+                        <!-- User Menu -->
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                                <span class="text-primary-foreground text-sm font-medium">JD</span>
+                            </div>
+                            <div class="hidden md:block">
+                                <div class="text-sm font-medium" data-bind="user.name">John Doe</div>
+                                <div class="text-xs text-muted-foreground" data-bind="user.role">Administrator</div>
+                            </div>
+                            <button>
+                                <i class="fas fa-chevron-down text-xs text-muted-foreground"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- @COMPONENT: DashboardContent -->
+            <div class="flex-1 p-6 bg-muted/30">
+                
+                <!-- @COMPONENT: StatsCards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-card p-6 rounded-lg border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-muted-foreground text-sm">Total Products</p>
+                                <p class="text-2xl font-bold text-foreground" data-bind="stats.totalProducts">2,847</p>
+                            </div>
+                            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-box text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center mt-2">
+                            <i class="fas fa-arrow-up text-green-500 text-xs mr-1"></i>
+                            <span class="text-green-500 text-sm">+12.3%</span>
+                            <span class="text-muted-foreground text-sm ml-2">from last month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card p-6 rounded-lg border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-muted-foreground text-sm">Active Orders</p>
+                                <p class="text-2xl font-bold text-foreground" data-bind="stats.activeOrders">1,245</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-shopping-cart text-green-500"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center mt-2">
+                            <i class="fas fa-arrow-up text-green-500 text-xs mr-1"></i>
+                            <span class="text-green-500 text-sm">+8.1%</span>
+                            <span class="text-muted-foreground text-sm ml-2">from last week</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card p-6 rounded-lg border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-muted-foreground text-sm">Revenue</p>
+                                <p class="text-2xl font-bold text-foreground" data-bind="stats.revenue">$45,632</p>
+                            </div>
+                            <div class="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-dollar-sign text-yellow-500"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center mt-2">
+                            <i class="fas fa-arrow-down text-red-500 text-xs mr-1"></i>
+                            <span class="text-red-500 text-sm">-2.3%</span>
+                            <span class="text-muted-foreground text-sm ml-2">from last month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card p-6 rounded-lg border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-muted-foreground text-sm">Sync Status</p>
+                                <p class="text-2xl font-bold text-green-500">Connected</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-sync-alt text-green-500"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center mt-2">
+                            <span class="text-muted-foreground text-sm">Last sync: 2 minutes ago</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    
+                    <!-- @COMPONENT: RecentOrders -->
+                    <div class="lg:col-span-2 bg-card rounded-lg border border-border">
+                        <div class="p-6 border-b border-border">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-foreground">Recent Orders</h3>
+                                <a href="#" class="text-primary text-sm hover:underline">View All</a>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <!-- @FUNCTIONALITY: Orders table should display real order data from ERPNext/Saleor -->
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-border">
+                                        <th class="text-left py-3 px-6 text-muted-foreground font-medium">Order ID</th>
+                                        <th class="text-left py-3 px-6 text-muted-foreground font-medium">Customer</th>
+                                        <th class="text-left py-3 px-6 text-muted-foreground font-medium">Status</th>
+                                        <th class="text-left py-3 px-6 text-muted-foreground font-medium">Amount</th>
+                                        <th class="text-left py-3 px-6 text-muted-foreground font-medium">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- @MAP: orders.map(order => ( -->
+                                    <tr class="border-b border-border hover:bg-muted/50">
+                                        <td class="py-3 px-6">
+                                            <span class="font-medium text-foreground" data-mock="true">#ORD-001234</span>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                                                    <span class="text-xs font-medium" data-mock="true">JD</span>
+                                                </div>
+                                                <span class="text-foreground" data-mock="true">John Doe</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full" data-mock="true">Processing</span>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <span class="font-medium text-foreground" data-mock="true">$234.50</span>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <span class="text-muted-foreground" data-mock="true">Dec 20, 2024</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-border hover:bg-muted/50">
+                                        <td class="py-3 px-6">
+                                            <span class="font-medium text-foreground" data-mock="true">#ORD-001235</span>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                                                    <span class="text-xs font-medium" data-mock="true">SM</span>
+                                                </div>
+                                                <span class="text-foreground" data-mock="true">Sarah Miller</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full" data-mock="true">Shipped</span>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <span class="font-medium text-foreground" data-mock="true">$456.78</span>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <span class="text-muted-foreground" data-mock="true">Dec 19, 2024</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-border hover:bg-muted/50">
+                                        <td class="py-3 px-6">
+                                            <span class="font-medium text-foreground" data-mock="true">#ORD-001236</span>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                                                    <span class="text-xs font-medium" data-mock="true">MB</span>
+                                                </div>
+                                                <span class="text-foreground" data-mock="true">Mike Brown</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full" data-mock="true">Pending</span>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <span class="font-medium text-foreground" data-mock="true">$189.99</span>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <span class="text-muted-foreground" data-mock="true">Dec 18, 2024</span>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- @COMPONENT: IntegrationStatus -->
+                    <div class="bg-card rounded-lg border border-border">
+                        <div class="p-6 border-b border-border">
+                            <h3 class="text-lg font-semibold text-foreground">Integration Status</h3>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-database text-blue-500"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-foreground">ERPNext</p>
+                                        <p class="text-xs text-muted-foreground">v15.78.1</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span class="text-sm text-green-500">Active</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-shopping-cart text-purple-500"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-foreground">Saleor</p>
+                                        <p class="text-xs text-muted-foreground">v3.20</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span class="text-sm text-green-500">Active</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-cloud text-orange-500"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-foreground">API Gateway</p>
+                                        <p class="text-xs text-muted-foreground">Traefik</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span class="text-sm text-green-500">Active</span>
+                                </div>
+                            </div>
+                            
+                            <!-- @COMPONENT: SyncActions -->
+                            <div class="pt-4 border-t border-border space-y-3">
+                                <button class="w-full bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-primary/90 transition-colors text-sm font-medium">
+                                    <i class="fas fa-sync-alt mr-2"></i>
+                                    Sync All Data
+                                </button>
+                                <button class="w-full bg-secondary text-secondary-foreground py-2 px-4 rounded-md hover:bg-secondary/90 transition-colors text-sm font-medium">
+                                    <i class="fas fa-cog mr-2"></i>
+                                    Sync Settings
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- @COMPONENT: InventoryOverview -->
+                    <div class="bg-card rounded-lg border border-border">
+                        <div class="p-6 border-b border-border">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-foreground">Inventory Overview</h3>
+                                <button class="text-primary text-sm hover:underline">Manage</button>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-muted-foreground">Low Stock Items</span>
+                                    <span class="font-medium text-destructive" data-mock="true">23</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-muted-foreground">Out of Stock</span>
+                                    <span class="font-medium text-destructive" data-mock="true">5</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-muted-foreground">Total SKUs</span>
+                                    <span class="font-medium text-foreground" data-mock="true">2,847</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-muted-foreground">Warehouses</span>
+                                    <span class="font-medium text-foreground" data-mock="true">3</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <div class="flex items-center justify-between text-sm mb-2">
+                                    <span class="text-muted-foreground">Stock Level</span>
+                                    <span class="text-foreground">78%</span>
+                                </div>
+                                <div class="w-full bg-muted rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 78%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- @COMPONENT: RecentActivity -->
+                    <div class="bg-card rounded-lg border border-border">
+                        <div class="p-6 border-b border-border">
+                            <h3 class="text-lg font-semibold text-foreground">Recent Activity</h3>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-4">
+                                <!-- @MAP: activities.map(activity => ( -->
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-plus text-primary text-xs"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-foreground" data-mock="true">New product added: "Winter Jacket - XL"</p>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">2 minutes ago</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-green-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-green-500 text-xs"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-foreground" data-mock="true">Order #ORD-001234 marked as shipped</p>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">15 minutes ago</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-blue-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-sync text-blue-500 text-xs"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-foreground" data-mock="true">Inventory sync completed with ERPNext</p>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">1 hour ago</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-yellow-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-exclamation-triangle text-yellow-500 text-xs"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-foreground" data-mock="true">Low stock alert: "Leather Wallet - Black"</p>
+                                        <p class="text-xs text-muted-foreground" data-mock="true">2 hours ago</p>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- @COMPONENT: Modal (Hidden by default) -->
+    <div class="hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-50" id="modal-overlay">
+        <div class="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] w-full max-w-lg bg-card border border-border rounded-lg shadow-lg">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-foreground">Sync Configuration</h3>
+                    <button class="text-muted-foreground hover:text-foreground">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">ERPNext URL</label>
+                        <input type="text" class="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground" placeholder="https://your-erpnext.domain.com" data-mock="true">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">API Key</label>
+                        <input type="password" class="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground" placeholder="Enter API key" data-mock="true">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">Sync Interval</label>
+                        <select class="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground" data-mock="true">
+                            <option>Every 5 minutes</option>
+                            <option>Every 15 minutes</option>
+                            <option>Every hour</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button class="px-4 py-2 text-muted-foreground hover:text-foreground">Cancel</button>
+                    <button class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        
+        (function() {
+            // Basic UI interactions - no business logic
+            
+            // Theme toggle placeholder
+            document.addEventListener('DOMContentLoaded', function() {
+                const themeToggle = document.querySelector('.fa-moon').parentElement;
+                themeToggle?.addEventListener('click', function() {
+                    document.documentElement.classList.toggle('dark');
+                    const icon = this.querySelector('i');
+                    if (document.documentElement.classList.contains('dark')) {
+                        icon.className = 'fas fa-sun text-muted-foreground';
+                    } else {
+                        icon.className = 'fas fa-moon text-muted-foreground';
+                    }
+                });
+                
+                // Sidebar toggle for mobile
+                const sidebarToggle = document.querySelector('.fa-bars');
+                const sidebar = document.getElementById('sidebar');
+                
+                sidebarToggle?.addEventListener('click', function() {
+                    sidebar.classList.toggle('-translate-x-full');
+                });
+            });
+            
+            // Mock data structure for demonstration
+            const mockData = {
+                stats: {
+                    totalProducts: '2,847',
+                    activeOrders: '1,245', 
+                    revenue: '$45,632'
+                },
+                currentTenant: {
+                    name: 'SudoTechServe'
+                },
+                user: {
+                    name: 'John Doe',
+                    role: 'Administrator'
+                }
+            };
+            
+            // Note: In production, replace with actual API calls
+            console.log('Mock data loaded:', mockData);
+        })();
+    </script>
+    
+    <!-- @END_COMPONENT: MainLayout -->
+</body>
+</html>

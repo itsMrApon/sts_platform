@@ -1,10 +1,44 @@
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
+import pgSession from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// CORS middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Session middleware with PostgreSQL store
+if (process.env.DATABASE_URL) {
+  const PgSession = pgSession(session);
+  app.use(session({
+    store: new PgSession({
+      conString: process.env.DATABASE_URL,
+      tableName: 'session'
+    }),
+    secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    }
+  }));
+}
 
 app.use((req, res, next) => {
   const start = Date.now();

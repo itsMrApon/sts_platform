@@ -1,0 +1,568 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STS Multi-Tenant Platform - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    borderRadius: {
+                        lg: "var(--radius)",
+                        md: "calc(var(--radius) - 2px)",
+                        sm: "calc(var(--radius) - 4px)",
+                    },
+                    colors: {
+                        background: "var(--background)",
+                        foreground: "var(--foreground)",
+                        card: {
+                            DEFAULT: "var(--card)",
+                            foreground: "var(--card-foreground)",
+                        },
+                        popover: {
+                            DEFAULT: "var(--popover)",
+                            foreground: "var(--popover-foreground)",
+                        },
+                        primary: {
+                            DEFAULT: "var(--primary)",
+                            foreground: "var(--primary-foreground)",
+                        },
+                        secondary: {
+                            DEFAULT: "var(--secondary)",
+                            foreground: "var(--secondary-foreground)",
+                        },
+                        muted: {
+                            DEFAULT: "var(--muted)",
+                            foreground: "var(--muted-foreground)",
+                        },
+                        accent: {
+                            DEFAULT: "var(--accent)",
+                            foreground: "var(--accent-foreground)",
+                        },
+                        destructive: {
+                            DEFAULT: "var(--destructive)",
+                            foreground: "var(--destructive-foreground)",
+                        },
+                        border: "var(--border)",
+                        input: "var(--input)",
+                        ring: "var(--ring)",
+                    },
+                    fontFamily: {
+                        sans: ["var(--font-sans)"],
+                    }
+                },
+            }
+        };
+    </script>
+    <style>
+        :root {
+            --background: hsl(0 0% 100%);
+            --foreground: hsl(222.2 84% 4.9%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(222.2 84% 4.9%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(222.2 84% 4.9%);
+            --primary: hsl(221.2 83.2% 53.3%);
+            --primary-foreground: hsl(210 40% 98%);
+            --secondary: hsl(210 40% 96%);
+            --secondary-foreground: hsl(222.2 84% 4.9%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(215.4 16.3% 46.9%);
+            --accent: hsl(210 40% 96%);
+            --accent-foreground: hsl(222.2 84% 4.9%);
+            --destructive: hsl(0 84.2% 60.2%);
+            --destructive-foreground: hsl(210 40% 98%);
+            --border: hsl(214.3 31.8% 91.4%);
+            --input: hsl(214.3 31.8% 91.4%);
+            --ring: hsl(221.2 83.2% 53.3%);
+            --radius: 0.5rem;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-background text-foreground font-sans">
+    <!-- @COMPONENT: MainLayout -->
+    <div class="flex h-screen bg-gray-50">
+        <!-- @COMPONENT: Sidebar -->
+        <div class="w-64 bg-white border-r border-border shadow-sm flex flex-col">
+            <!-- Logo and Tenant Switcher -->
+            <div class="p-4 border-b border-border">
+                <div class="flex items-center space-x-2 mb-4">
+                    <div class="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
+                        <i class="fas fa-cube text-primary-foreground text-sm"></i>
+                    </div>
+                    <div class="text-lg font-semibold text-foreground">STS Platform</div>
+                </div>
+                
+                <!-- Tenant Switcher -->
+                <div class="relative">
+                    <select class="w-full p-2 bg-background border border-border rounded-md text-sm focus:ring-2 focus:ring-ring focus:border-transparent" data-bind="selectedTenant">
+                        <option value="sudotechserve" data-mock="true">SudoTechServe (Agency/SaaS)</option>
+                        <option value="switchtoswag" data-mock="true">SwitchToSwag (E-commerce)</option>
+                        <option value="strongtermstrategy" data-mock="true">StrongTermStrategy (Manufacturing)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="flex-1 overflow-y-auto p-2">
+                <div class="space-y-1">
+                    <!-- Dashboard -->
+                    <div class="p-2">
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 text-sm font-medium text-primary bg-primary/10 rounded-md hover:bg-primary/20 transition-colors" data-event="click:navigateTo" data-implementation="Navigate to dashboard">
+                            <i class="fas fa-home w-4 h-4"></i>
+                            <span>Dashboard</span>
+                        </button>
+                    </div>
+
+                    <!-- Tenant-specific modules -->
+                    <div id="sudotechserve-modules" class="space-y-1">
+                        <div class="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Agency/SaaS</div>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-users w-4 h-4"></i>
+                            <span>CRM Pipeline</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-tasks w-4 h-4"></i>
+                            <span>Projects</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-credit-card w-4 h-4"></i>
+                            <span>Subscriptions</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-headset w-4 h-4"></i>
+                            <span>Support</span>
+                        </button>
+                    </div>
+
+                    <div id="switchtoswag-modules" class="space-y-1 hidden">
+                        <div class="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">E-commerce</div>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-box w-4 h-4"></i>
+                            <span>Products</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-shopping-cart w-4 h-4"></i>
+                            <span>Orders</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-warehouse w-4 h-4"></i>
+                            <span>Inventory</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-palette w-4 h-4"></i>
+                            <span>Design Studio</span>
+                        </button>
+                    </div>
+
+                    <div id="strongtermstrategy-modules" class="space-y-1 hidden">
+                        <div class="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Manufacturing</div>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-industry w-4 h-4"></i>
+                            <span>Manufacturing</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-truck w-4 h-4"></i>
+                            <span>Procurement</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-clipboard-list w-4 h-4"></i>
+                            <span>Quality Control</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-ship w-4 h-4"></i>
+                            <span>FOB Shipments</span>
+                        </button>
+                    </div>
+
+                    <!-- Common modules -->
+                    <div class="space-y-1">
+                        <div class="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Common</div>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-chart-bar w-4 h-4"></i>
+                            <span>Reports</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-cog w-4 h-4"></i>
+                            <span>Settings</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-5 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                            <i class="fas fa-plug w-4 h-4"></i>
+                            <span>Integrations</span>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- User Profile -->
+            <div class="p-4 border-t border-border">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-gray-600 text-sm"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium text-foreground truncate" data-bind="user.name" data-mock="true">Admin User</div>
+                        <div class="text-xs text-muted-foreground truncate" data-bind="user.role" data-mock="true">System Administrator</div>
+                    </div>
+                    <button class="text-muted-foreground hover:text-foreground">
+                        <i class="fas fa-ellipsis-v text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainContent -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white border-b border-border p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-xl font-semibold text-foreground">Dashboard</h1>
+                        <p class="text-sm text-muted-foreground" data-bind="currentTenant.description" data-mock="true">Welcome to your SudoTechServe dashboard</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- Search -->
+                        <div class="relative">
+                            <input type="text" placeholder="Search or type a command (⌘ + K)" class="w-80 pl-10 pr-4 py-2 bg-background border border-border rounded-md text-sm focus:ring-2 focus:ring-ring focus:border-transparent" data-implementation="Implement global search">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm"></i>
+                            <kbd class="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground bg-muted px-2 py-1 rounded">⌘K</kbd>
+                        </div>
+                        <!-- Notifications -->
+                        <button class="relative p-2 text-muted-foreground hover:text-foreground">
+                            <i class="fas fa-bell text-lg"></i>
+                            <span class="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full"></span>
+                        </button>
+                        <!-- Help -->
+                        <button class="p-2 text-muted-foreground hover:text-foreground">
+                            <i class="fas fa-question-circle text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Getting Started Section -->
+                <div class="mb-8">
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold text-card-foreground">Let's begin your journey with STS Platform</h2>
+                            <button class="text-sm text-muted-foreground hover:text-foreground" data-event="click:dismissOnboarding">Dismiss</button>
+                        </div>
+                        <p class="text-muted-foreground mb-6">ERPNext, Saleor, and custom business operations integration</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-6 h-6 bg-primary rounded-full flex items-center justify-center mt-1">
+                                    <i class="fas fa-check text-primary-foreground text-xs"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-medium text-card-foreground mb-1">Setup ERPNext Connection</h3>
+                                    <p class="text-sm text-muted-foreground">Connect to your ERPNext instance at localhost:8080</p>
+                                    <button class="text-sm text-primary hover:text-primary/80 mt-1" data-event="click:setupERPNext">Configure</button>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-6 h-6 bg-secondary border-2 border-border rounded-full flex items-center justify-center mt-1">
+                                    <span class="w-2 h-2 bg-muted-foreground rounded-full"></span>
+                                </div>
+                                <div>
+                                    <h3 class="font-medium text-card-foreground mb-1">Setup Saleor Connection</h3>
+                                    <p class="text-sm text-muted-foreground">Connect to your Saleor GraphQL API at localhost:9001</p>
+                                    <button class="text-sm text-primary hover:text-primary/80 mt-1" data-event="click:setupSaleor">Configure</button>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3">
+                                <div class="w-6 h-6 bg-secondary border-2 border-border rounded-full flex items-center justify-center mt-1">
+                                    <span class="w-2 h-2 bg-muted-foreground rounded-full"></span>
+                                </div>
+                                <div>
+                                    <h3 class="font-medium text-card-foreground mb-1">Configure Webhooks</h3>
+                                    <p class="text-sm text-muted-foreground">Setup real-time data synchronization</p>
+                                    <button class="text-sm text-primary hover:text-primary/80 mt-1" data-event="click:setupWebhooks">Configure</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Grid -->
+                <div class="mb-8">
+                    <h2 class="text-lg font-semibold text-foreground mb-4">Your Shortcuts</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button class="bg-card border border-border rounded-lg p-4 text-left hover:shadow-md transition-shadow group" data-event="click:quickAction" data-implementation="Navigate to respective module">
+                            <i class="fas fa-plus-circle text-2xl text-primary mb-3 group-hover:text-primary/80"></i>
+                            <h3 class="font-medium text-card-foreground mb-1">Create Item</h3>
+                            <p class="text-sm text-muted-foreground">Add new product or service</p>
+                        </button>
+                        <button class="bg-card border border-border rounded-lg p-4 text-left hover:shadow-md transition-shadow group">
+                            <i class="fas fa-user-plus text-2xl text-primary mb-3 group-hover:text-primary/80"></i>
+                            <h3 class="font-medium text-card-foreground mb-1">Add Customer</h3>
+                            <p class="text-sm text-muted-foreground">Create new customer record</p>
+                        </button>
+                        <button class="bg-card border border-border rounded-lg p-4 text-left hover:shadow-md transition-shadow group">
+                            <i class="fas fa-file-invoice text-2xl text-primary mb-3 group-hover:text-primary/80"></i>
+                            <h3 class="font-medium text-card-foreground mb-1">Sales Invoice</h3>
+                            <p class="text-sm text-muted-foreground">Generate new invoice</p>
+                        </button>
+                        <button class="bg-card border border-border rounded-lg p-4 text-left hover:shadow-md transition-shadow group">
+                            <i class="fas fa-chart-line text-2xl text-primary mb-3 group-hover:text-primary/80"></i>
+                            <h3 class="font-medium text-card-foreground mb-1">Dashboard</h3>
+                            <p class="text-sm text-muted-foreground">View analytics and reports</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reports & Masters Grid -->
+                <div class="mb-8">
+                    <h2 class="text-lg font-semibold text-foreground mb-4">Reports & Masters</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Accounting -->
+                        <div class="bg-card border border-border rounded-lg p-6">
+                            <h3 class="font-medium text-card-foreground mb-4 flex items-center">
+                                <i class="fas fa-calculator text-primary mr-2"></i>
+                                Accounting
+                            </h3>
+                            <div class="space-y-2">
+                                <button class="w-full text-left text-sm text-muted-foreground hover:text-foreground py-1 flex items-center">
+                                    <span>Chart of Accounts</span>
+                                    <i class="fas fa-arrow-right ml-auto text-xs"></i>
+                                </button>
+                                <button class="w-full text-left text-sm text-muted-foreground hover:text-foreground py-1 flex items-center">
+                                    <span>Company</span>
+                                    <i class="fas fa-arrow-right ml-auto text-xs"></i>
+                                </button>
+                                <button class="w-full text-left text-sm text-muted-foreground hover:text-foreground py-1 flex items-center">
+                                    <span>Customer</span>
+                                    <i class="fas fa-arrow-right ml-auto text-xs"></i>
+                                </button>
+                                <button class="w-full text-left text-sm text-muted-foreground hover:text-foreground py-1 flex items-center">
+                                    <span>Supplier</span>
+                                    <i class="fas fa-arrow-right ml-auto text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Stock -->
+                        <div class="bg-card border border-border rounded-lg p-6">
+                            <h3 class="font-medium text-card-foreground mb-4 flex items-center">
+                                <i class="fas fa-boxes text-primary mr-2"></i>
+                                Stock
+                            </h3>
+                            <div class="space-y-2">
+                                <button class="w-full text-left text-sm text-muted-foreground hover:text-foreground py-1 flex items-center">
+                                    <span>Item</span>
+                                    <i class="fas fa-arrow-right ml-auto text-xs"></i>
+                                </button>
+                                <button class="w-full text-left text-sm text-muted-foreground hover:text-foreground py-1 flex items-center">
+                                    <span>Warehouse</span>
+                                    <i class="fas fa-arrow-right ml-auto text-xs"></i>
+                                </button>
+                                <button class="w-full text-left text-sm text-muted-foreground hover:text-foreground py-1 flex items-center">
+                                    <span>Brand</span>
+                                    <i class="fas fa-arrow-right ml-auto text-xs"></i>
+                                </button>
+                                <button class="w-full text-left text-sm text-muted-foreground hover:text-foreground py-1 flex items-center">
+                                    <span>Unit of Measure (UOM)</span>
+                                    <i class="fas fa-arrow-right ml-auto text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- CRM -->
+                        <div class="bg-card border border-border rounded-lg p-6">
+                            <h3 class="font-medium text-card-foreground mb-4 flex items-center">
+                                <i class="fas fa-handshake text-primary mr-2"></i>
+                                CRM
+                            </h3>
+                            <div class="space-y-2">
+                                <button class="w-full text-left text-sm text-muted-foreground hover:text-foreground py-1 flex items-center">
+                                    <span>Lead</span>
+                                    <i class="fas fa-arrow-right ml-auto text-xs"></i>
+                                </button>
+                                <button class="w-full text-left text-sm text-muted-foreground hover:text-foreground py-1 flex items-center">
+                                    <span>Customer Group</span>
+                                    <i class="fas fa-arrow-right ml-auto text-xs"></i>
+                                </button>
+                                <button class="w-full text-left text-sm text-muted-foreground hover:text-foreground py-1 flex items-center">
+                                    <span>Territory</span>
+                                    <i class="fas fa-arrow-right ml-auto text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Integration Status Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- ERPNext Integration -->
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-medium text-card-foreground flex items-center">
+                                <i class="fas fa-database text-primary mr-2"></i>
+                                ERPNext Integration
+                            </h3>
+                            <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full flex items-center">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                                Connected
+                            </span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-muted-foreground">Last Sync</span>
+                                <span class="text-sm font-medium text-card-foreground" data-bind="erpnext.lastSync" data-mock="true">2 minutes ago</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-muted-foreground">Records Synced</span>
+                                <span class="text-sm font-medium text-card-foreground" data-bind="erpnext.recordCount" data-mock="true">1,245</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-muted-foreground">Webhook Status</span>
+                                <span class="text-sm font-medium text-green-600" data-bind="erpnext.webhookStatus" data-mock="true">Active</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Saleor Integration -->
+                    <div class="bg-card border border-border rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-medium text-card-foreground flex items-center">
+                                <i class="fas fa-shopping-bag text-primary mr-2"></i>
+                                Saleor Integration
+                            </h3>
+                            <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full flex items-center">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                                Connected
+                            </span>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-muted-foreground">Last Sync</span>
+                                <span class="text-sm font-medium text-card-foreground" data-bind="saleor.lastSync" data-mock="true">1 minute ago</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-muted-foreground">Products Synced</span>
+                                <span class="text-sm font-medium text-card-foreground" data-bind="saleor.productCount" data-mock="true">89</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-muted-foreground">GraphQL Status</span>
+                                <span class="text-sm font-medium text-green-600" data-bind="saleor.graphqlStatus" data-mock="true">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+    <!-- @END_COMPONENT: MainLayout -->
+
+    <!-- @COMPONENT: NotificationToast -->
+    <div id="notification-toast" class="fixed top-4 right-4 bg-card border border-border rounded-lg shadow-lg p-4 max-w-sm hidden" data-implementation="Show real-time sync notifications">
+        <div class="flex items-start space-x-3">
+            <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i class="fas fa-check text-white text-xs"></i>
+            </div>
+            <div class="flex-1">
+                <h4 class="text-sm font-medium text-card-foreground">Sync Completed</h4>
+                <p class="text-xs text-muted-foreground mt-1" data-mock="true">ERPNext data synchronized successfully</p>
+            </div>
+            <button class="text-muted-foreground hover:text-foreground">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: NotificationToast -->
+
+    <script>
+        (function() {
+            // TODO: Implement tenant switching functionality
+            const tenantSelect = document.querySelector('[data-bind="selectedTenant"]');
+            const moduleGroups = {
+                sudotechserve: document.getElementById('sudotechserve-modules'),
+                switchtoswag: document.getElementById('switchtoswag-modules'),
+                strongtermstrategy: document.getElementById('strongtermstrategy-modules')
+            };
+
+            tenantSelect.addEventListener('change', function() {
+                // Hide all module groups
+                Object.values(moduleGroups).forEach(group => {
+                    group.classList.add('hidden');
+                });
+                
+                // Show selected tenant modules
+                const selectedTenant = this.value;
+                if (moduleGroups[selectedTenant]) {
+                    moduleGroups[selectedTenant].classList.remove('hidden');
+                }
+
+                // TODO: Update dashboard content based on selected tenant
+                // TODO: Load tenant-specific data from APIs
+            });
+
+            // TODO: Implement ERPNext REST API integration
+            class ERPNextClient {
+                constructor(baseUrl = 'http://localhost:8080') {
+                    this.baseUrl = baseUrl;
+                }
+
+                async getData(endpoint) {
+                    // TODO: Implement REST API calls to ERPNext
+                    console.log(`Fetching data from ERPNext: ${endpoint}`);
+                }
+
+                async webhook(data) {
+                    // TODO: Handle incoming webhook data
+                    console.log('Received ERPNext webhook:', data);
+                }
+            }
+
+            // TODO: Implement Saleor GraphQL integration
+            class SaleorClient {
+                constructor(baseUrl = 'http://localhost:9001') {
+                    this.baseUrl = baseUrl;
+                }
+
+                async query(query, variables = {}) {
+                    // TODO: Implement GraphQL queries to Saleor
+                    console.log('Executing Saleor GraphQL query:', query);
+                }
+
+                async webhook(data) {
+                    // TODO: Handle incoming webhook data
+                    console.log('Received Saleor webhook:', data);
+                }
+            }
+
+            // TODO: Initialize API clients
+            const erpnext = new ERPNextClient();
+            const saleor = new SaleorClient();
+
+            // TODO: Setup real-time sync notifications
+            function showNotification(title, message, type = 'success') {
+                const toast = document.getElementById('notification-toast');
+                toast.querySelector('h4').textContent = title;
+                toast.querySelector('p').textContent = message;
+                toast.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 5000);
+            }
+
+            // TODO: Implement search functionality with global commands
+            const searchInput = document.querySelector('input[placeholder*="Search"]');
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    // TODO: Implement global search across ERPNext and Saleor data
+                    console.log('Searching:', this.value);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
