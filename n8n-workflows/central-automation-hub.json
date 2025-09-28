@@ -1,0 +1,201 @@
+{
+  "name": "Central Automation Hub - SaaS Ready",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "automation",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Automation Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "central-automation-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Central Decision Engine - SaaS Ready\nconst input = $input.first().json;\nconst { tenant_slug, action, data } = input;\n\n// Validate input\nif (!tenant_slug) {\n  throw new Error('tenant_slug is required');\n}\n\nif (!action) {\n  throw new Error('action is required');\n}\n\n// Define available actions and their configurations\nconst actions = {\n  'sync-products': {\n    description: 'Sync products between Saleor and ERPNext',\n    priority: 'high',\n    estimatedTime: '30s'\n  },\n  'sync-orders': {\n    description: 'Sync orders and create customer leads',\n    priority: 'high',\n    estimatedTime: '45s'\n  },\n  'sync-customers': {\n    description: 'Sync customer data',\n    priority: 'medium',\n    estimatedTime: '20s'\n  },\n  'get-status': {\n    description: 'Get system status',\n    priority: 'low',\n    estimatedTime: '5s'\n  }\n};\n\nconst actionConfig = actions[action];\nif (!actionConfig) {\n  throw new Error(`Unknown action: ${action}. Available actions: ${Object.keys(actions).join(', ')}`);\n}\n\n// Prepare automation request\nconst automationRequest = {\n  tenant_slug,\n  action,\n  data: data || {},\n  config: actionConfig,\n  timestamp: new Date().toISOString(),\n  request_id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`\n};\n\nreturn { json: automationRequest };"
+      },
+      "id": "decision-engine",
+      "name": "Decision Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3000/api/n8n/automation/{{ $json.tenant_slug }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"action\": \"{{ $json.action }}\",\n  \"data\": {{ JSON.stringify($json.data) }}\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "execute-automation",
+      "name": "Execute Automation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "{{ $json.success }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-success",
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Success Handler - Log and prepare response\nconst input = $input.first().json;\nconst originalRequest = $('Decision Engine').first().json;\n\nconst successResponse = {\n  success: true,\n  tenant: input.tenant,\n  action: input.action,\n  result: input.result,\n  execution_time: new Date().toISOString(),\n  request_id: originalRequest.request_id,\n  message: `Automation '${input.action}' completed successfully for tenant '${input.tenant}'`\n};\n\nreturn { json: successResponse };"
+      },
+      "id": "success-handler",
+      "name": "Success Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Error Handler - Log and prepare error response\nconst input = $input.first().json;\nconst originalRequest = $('Decision Engine').first().json;\n\nconst errorResponse = {\n  success: false,\n  tenant: originalRequest.tenant_slug,\n  action: originalRequest.action,\n  error: input.message || 'Unknown error occurred',\n  execution_time: new Date().toISOString(),\n  request_id: originalRequest.request_id,\n  message: `Automation '${originalRequest.action}' failed for tenant '${originalRequest.tenant_slug}'`\n};\n\nreturn { json: errorResponse };"
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{{ JSON.stringify($json) }}"
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{{ JSON.stringify($json) }}"
+      },
+      "id": "respond-error",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 400]
+    }
+  ],
+  "connections": {
+    "Automation Webhook": {
+      "main": [
+        [
+          {
+            "node": "Decision Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decision Engine": {
+      "main": [
+        [
+          {
+            "node": "Execute Automation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Automation": {
+      "main": [
+        [
+          {
+            "node": "Check Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Success": {
+      "main": [
+        [
+          {
+            "node": "Success Handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Handler": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "central-automation-hub",
+  "tags": ["automation", "saas", "central-hub", "saleor", "erpnext"]
+}

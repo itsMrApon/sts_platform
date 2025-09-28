@@ -1,0 +1,304 @@
+subscription {
+  event {
+    ... on WarehouseCreated {
+      __typename
+    }
+    ... on WarehouseDeleted {
+      __typename
+    }
+    ... on WarehouseMetadataUpdated {
+      __typename
+    }
+    ... on WarehouseUpdated {
+      __typename
+    }
+    ... on VoucherCodesCreated {
+      __typename
+    }
+    ... on VoucherCodesDeleted {
+      __typename
+    }
+    ... on VoucherCodeExportCompleted {
+      __typename
+    }
+    ... on VoucherCreated {
+      __typename
+    }
+    ... on VoucherDeleted {
+      __typename
+    }
+    ... on VoucherMetadataUpdated {
+      __typename
+    }
+    ... on VoucherUpdated {
+      __typename
+    }
+    ... on ShopMetadataUpdated {
+      __typename
+    }
+    ... on ShippingPriceCreated {
+      __typename
+    }
+    ... on ShippingPriceDeleted {
+      __typename
+    }
+    ... on ShippingPriceUpdated {
+      __typename
+    }
+    ... on ShippingZoneCreated {
+      __typename
+    }
+    ... on ShippingZoneDeleted {
+      __typename
+    }
+    ... on ShippingZoneMetadataUpdated {
+      __typename
+    }
+    ... on ShippingZoneUpdated {
+      __typename
+    }
+    ... on SaleCreated {
+      __typename
+    }
+    ... on SaleDeleted {
+      __typename
+    }
+    ... on SaleToggle {
+      __typename
+    }
+    ... on SaleUpdated {
+      __typename
+    }
+    ... on ProductCreated {
+      __typename
+    }
+    ... on ProductDeleted {
+      __typename
+    }
+    ... on ProductExportCompleted {
+      __typename
+    }
+    ... on ProductMediaCreated {
+      __typename
+    }
+    ... on ProductMediaDeleted {
+      __typename
+    }
+    ... on ProductMediaUpdated {
+      __typename
+    }
+    ... on ProductMetadataUpdated {
+      __typename
+    }
+    ... on ProductUpdated {
+      __typename
+    }
+    ... on ProductVariantBackInStock {
+      __typename
+    }
+    ... on ProductVariantCreated {
+      __typename
+    }
+    ... on ProductVariantDeleted {
+      __typename
+    }
+    ... on ProductVariantMetadataUpdated {
+      __typename
+    }
+    ... on ProductVariantOutOfStock {
+      __typename
+    }
+    ... on ProductVariantStockUpdated {
+      __typename
+    }
+    ... on ProductVariantUpdated {
+      __typename
+    }
+    ... on PermissionGroupCreated {
+      __typename
+    }
+    ... on PermissionGroupDeleted {
+      __typename
+    }
+    ... on PermissionGroupUpdated {
+      __typename
+    }
+    ... on OrderBulkCreated {
+      __typename
+    }
+    ... on OrderCancelled {
+      __typename
+    }
+    ... on OrderConfirmed {
+      __typename
+    }
+    ... on OrderCreated {
+      __typename
+    }
+    ... on OrderExpired {
+      __typename
+    }
+    ... on OrderFulfilled {
+      __typename
+    }
+    ... on OrderFullyPaid {
+      __typename
+    }
+    ... on OrderFullyRefunded {
+      __typename
+    }
+    ... on OrderMetadataUpdated {
+      __typename
+    }
+    ... on OrderPaid {
+      __typename
+    }
+    ... on OrderRefunded {
+      __typename
+    }
+    ... on OrderUpdated {
+      __typename
+    }
+    ... on MenuCreated {
+      __typename
+    }
+    ... on MenuDeleted {
+      __typename
+    }
+    ... on MenuItemCreated {
+      __typename
+    }
+    ... on MenuItemDeleted {
+      __typename
+    }
+    ... on MenuItemUpdated {
+      __typename
+    }
+    ... on MenuUpdated {
+      __typename
+    }
+    ... on InvoiceDeleted {
+      __typename
+    }
+    ... on InvoiceRequested {
+      __typename
+    }
+    ... on InvoiceSent {
+      __typename
+    }
+    ... on GiftCardCreated {
+      __typename
+    }
+    ... on GiftCardDeleted {
+      __typename
+    }
+    ... on GiftCardExportCompleted {
+      __typename
+    }
+    ... on GiftCardMetadataUpdated {
+      __typename
+    }
+    ... on GiftCardSent {
+      __typename
+    }
+    ... on GiftCardStatusChanged {
+      __typename
+    }
+    ... on GiftCardUpdated {
+      __typename
+    }
+    ... on CustomerCreated {
+      __typename
+    }
+    ... on CustomerMetadataUpdated {
+      __typename
+    }
+    ... on CustomerUpdated {
+      __typename
+    }
+    ... on DraftOrderCreated {
+      __typename
+    }
+    ... on DraftOrderDeleted {
+      __typename
+    }
+    ... on DraftOrderUpdated {
+      __typename
+    }
+    ... on CollectionCreated {
+      __typename
+    }
+    ... on CollectionDeleted {
+      __typename
+    }
+    ... on CollectionMetadataUpdated {
+      __typename
+    }
+    ... on CollectionUpdated {
+      __typename
+    }
+    ... on CheckoutCreated {
+      __typename
+    }
+    ... on CheckoutFullyPaid {
+      __typename
+    }
+    ... on CheckoutMetadataUpdated {
+      __typename
+    }
+    ... on CheckoutUpdated {
+      __typename
+    }
+    ... on ChannelCreated {
+      __typename
+    }
+    ... on ChannelDeleted {
+      __typename
+    }
+    ... on ChannelMetadataUpdated {
+      __typename
+    }
+    ... on ChannelStatusChanged {
+      __typename
+    }
+    ... on ChannelUpdated {
+      __typename
+    }
+    ... on CategoryCreated {
+      __typename
+    }
+    ... on CategoryDeleted {
+      __typename
+    }
+    ... on CategoryUpdated {
+      __typename
+    }
+    ... on AttributeCreated {
+      __typename
+    }
+    ... on AttributeDeleted {
+      __typename
+    }
+    ... on AttributeUpdated {
+      __typename
+    }
+    ... on AttributeValueCreated {
+      __typename
+    }
+    ... on AttributeValueDeleted {
+      __typename
+    }
+    ... on AttributeValueUpdated {
+      __typename
+    }
+    ... on AddressCreated {
+      __typename
+    }
+    ... on AddressDeleted {
+      __typename
+    }
+    ... on AddressUpdated {
+      __typename
+    }
+  }
+}

@@ -1,0 +1,218 @@
+{
+  "name": "Saleor-ERPNext Product Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sync-products",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "product-sync-webhook"
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3000/api/n8n/trigger/sync-products/{{ $json.tenant_slug }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "trigger-sync",
+      "name": "Trigger Product Sync",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "{{ $json.saleorProducts }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-products",
+      "name": "Check if Products Exist",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3000/api/tenants/{{ $json.tenant_slug }}/saleor/products",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "get-saleor-products",
+      "name": "Get Saleor Products",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3000/api/tenants/{{ $json.tenant_slug }}/erpnext/items",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "get-erpnext-items",
+      "name": "Get ERPNext Items",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compare products and items for sync\nconst saleorProducts = $input.first().json.products?.edges || [];\nconst erpnextItems = $input.last().json || [];\n\nconst syncData = {\n  tenant_slug: $('Webhook Trigger').first().json.tenant_slug,\n  sync_timestamp: new Date().toISOString(),\n  saleor_products_count: saleorProducts.length,\n  erpnext_items_count: erpnextItems.length,\n  products_to_sync: [],\n  items_to_sync: []\n};\n\n// Find products that need to be synced to ERPNext\nfor (const productEdge of saleorProducts) {\n  const product = productEdge.node;\n  const existingItem = erpnextItems.find(item => \n    item.item_code === product.sku || \n    item.item_name === product.name\n  );\n  \n  if (!existingItem) {\n    syncData.products_to_sync.push({\n      id: product.id,\n      name: product.name,\n      sku: product.sku,\n      description: product.description,\n      price: product.pricing?.priceRange?.start?.gross?.amount || 0\n    });\n  }\n}\n\n// Find items that need to be synced to Saleor\nfor (const item of erpnextItems) {\n  const existingProduct = saleorProducts.find(edge => \n    edge.node.sku === item.item_code || \n    edge.node.name === item.item_name\n  );\n  \n  if (!existingProduct) {\n    syncData.items_to_sync.push({\n      item_code: item.item_code,\n      item_name: item.item_name,\n      description: item.description,\n      standard_rate: item.standard_rate\n    });\n  }\n}\n\nreturn { json: syncData };"
+      },
+      "id": "compare-data",
+      "name": "Compare Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3000/api/n8n/execute/{{ $json.tenant_slug }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"workflow\": \"product-sync\",\n  \"data\": {{ JSON.stringify($json) }}\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "log-execution",
+      "name": "Log Execution",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"Product sync workflow completed\",\n  \"data\": {{ JSON.stringify($json) }}\n}"
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1560, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Trigger Product Sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger Product Sync": {
+      "main": [
+        [
+          {
+            "node": "Check if Products Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Products Exist": {
+      "main": [
+        [
+          {
+            "node": "Get Saleor Products",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get ERPNext Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Saleor Products": {
+      "main": [
+        [
+          {
+            "node": "Compare Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ERPNext Items": {
+      "main": [
+        [
+          {
+            "node": "Compare Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare Data": {
+      "main": [
+        [
+          {
+            "node": "Log Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Execution": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "product-sync-workflow",
+  "tags": ["saleor", "erpnext", "sync", "products"]
+}

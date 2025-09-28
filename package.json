@@ -13,7 +13,14 @@
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f postgres",
     "db:seed": "tsx server/seed.ts",
-    "db:reset": "npm run db:down && npm run db:up && sleep 5 && npm run db:push && npm run db:seed"
+    "db:reset": "npm run db:down && npm run db:up && sleep 5 && npm run db:push && npm run db:seed",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:restart": "docker compose restart",
+    "n8n:logs": "docker compose logs -f n8n",
+    "n8n:restart": "docker compose restart n8n",
+    "n8n:status": "docker compose ps n8n"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

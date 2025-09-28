@@ -88,9 +88,11 @@ export function WebhookLogs() {
     );
   }
 
-  const webhookLogs = logs?.filter(log => 
-    log.source === 'saleor' && (log.action.includes('webhook') || log.action.startsWith('webhook_'))
-  ) || [];
+      // Show both ERPNext and Saleor events
+      const webhookLogs = logs?.filter(log =>
+        (log.source === 'erpnext' && (log.action.includes('webhook') || log.action.includes('lead') || log.action.includes('customer') || log.action.includes('item') || log.action.includes('POST') || log.action.includes('GET'))) ||
+        (log.source === 'saleor' && (log.action.includes('webhook') || log.action.includes('customer_to_lead') || log.action.includes('customer')))
+      ) || [];
 
   // Debug logging
   console.log('WebhookLogs Debug:', {
@@ -107,7 +109,7 @@ export function WebhookLogs() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Webhook className="h-5 w-5" />
-            Webhook Logs
+            Integration Events
             <Badge variant="outline">{webhookLogs.length} events</Badge>
             <div className="ml-auto flex items-center gap-2">
               <Button 
@@ -128,14 +130,14 @@ export function WebhookLogs() {
       <CardContent>
         {/* Debug Info */}
         <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
-          <strong>Debug:</strong> Total logs: {logs?.length || 0}, Webhook logs: {webhookLogs.length}
+          <strong>Debug:</strong> Total logs: {logs?.length || 0}, Integration events: {webhookLogs.length}
         </div>
 
         {webhookLogs.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Webhook className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No webhook events yet</p>
-            <p className="text-sm">Create or update products in Saleor to see events here</p>
+            <p>No integration events yet</p>
+            <p className="text-sm">Create leads in ERPNext or customers in Saleor to see events here</p>
             {logs && logs.length > 0 && (
               <div className="mt-4 text-xs">
                 <p>Total logs available: {logs.length}</p>
@@ -151,10 +153,36 @@ export function WebhookLogs() {
                   {getSourceIcon(log.source)}
                   <div>
                     <div className="font-medium text-sm">
-                      {log.action.replace('webhook_', '').replace('_', ' ').toUpperCase()}
+                      {log.action === 'lead_created_lead' ? 'LEAD CREATED' : 
+                       log.action === 'customer_to_lead_created' ? 'CUSTOMER→LEAD CREATED' :
+                       log.action === 'customer_to_lead_failed' ? 'CUSTOMER→LEAD FAILED' :
+                       log.action}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {new Date(log.createdAt).toLocaleString()}
+                      <span className="ml-2 text-purple-600 font-medium">
+                        • Tenant: {currentTenant}
+                      </span>
+                      {log.payload && log.payload.created_by && (
+                        <span className="ml-2 text-blue-600">
+                          • by {log.payload.created_by}
+                        </span>
+                      )}
+                      {log.payload && log.payload.lead_name && (
+                        <span className="ml-2 text-green-600">
+                          • {log.payload.lead_name}
+                        </span>
+                      )}
+                      {log.payload && log.payload.saleor_customer_id && (
+                        <span className="ml-2 text-orange-600">
+                          • Customer: {log.payload.saleor_customer_id}
+                        </span>
+                      )}
+                      {log.payload && log.payload.erpnext_lead_name && (
+                        <span className="ml-2 text-blue-600">
+                          • Lead: {log.payload.erpnext_lead_name}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

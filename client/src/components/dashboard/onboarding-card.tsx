@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, Circle, Loader2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClients } from "@/lib/api-clients";
 import { useTenant } from "@/hooks/use-tenant";
+import { useToast } from "@/hooks/use-toast";
 
 interface OnboardingStep {
   title: string;
@@ -15,12 +16,21 @@ interface OnboardingStep {
 
 export function OnboardingCard() {
   const { currentTenant } = useTenant();
+  const { toast } = useToast();
+  const qc = useQueryClient();
   
   // Fetch sync status to determine connection state
   const { data: syncStatus, isLoading } = useQuery({
     queryKey: ['/api/tenants', currentTenant, 'sync-status'],
     queryFn: () => apiClients.getSyncStatus(currentTenant),
     refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Fetch integration logs to check webhook activity
+  const { data: logs } = useQuery({
+    queryKey: ['/api/tenants', currentTenant, 'logs'],
+    queryFn: () => apiClients.getLogs(currentTenant),
+    refetchInterval: 10000, // Refresh every 10 seconds for webhook activity
   });
 
   // Test ERPNext connection
@@ -43,6 +53,13 @@ export function OnboardingCard() {
     }
   };
 
+  // Check n8n health
+  const { data: n8nStatus } = useQuery({
+    queryKey: ['/api/n8n/status', currentTenant],
+    queryFn: () => apiClients.getN8nStatus(currentTenant),
+    refetchInterval: 15000,
+  });
+
   // Dynamic steps based on actual connection status
   const steps: OnboardingStep[] = [
     {
@@ -60,10 +77,10 @@ export function OnboardingCard() {
       testConnection: testSaleorConnection
     },
     {
-      title: "Configure Webhooks",
-      description: "Setup real-time data synchronization",
-      completed: false, // Will be true when webhooks are configured
-      action: "Configure"
+      title: "Setup n8n Connection",
+      description: n8nStatus?.n8n?.baseUrl || "Connect to your n8n instance",
+      completed: !!n8nStatus?.n8n?.available,
+      action: n8nStatus?.n8n?.available ? "Connected" : "Not connected"
     }
   ];
 
@@ -87,8 +104,22 @@ export function OnboardingCard() {
           <h2 className="text-lg font-semibold text-card-foreground">
             Let's begin your journey with STS Platform
           </h2>
-          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-            Dismiss
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-muted-foreground hover:text-foreground"
+            onClick={async () => {
+              try {
+                await apiClients.refreshSync(currentTenant);
+                await qc.invalidateQueries({ queryKey: ['/api/tenants', currentTenant, 'sync-status'] });
+                await qc.invalidateQueries({ queryKey: ['/api/n8n/status', currentTenant] });
+                toast({ title: 'Sync executed', description: 'Connectivity checked and status updated.' });
+              } catch (e: any) {
+                toast({ title: 'Sync failed', description: String(e?.message || e), variant: 'destructive' });
+              }
+            }}
+          >
+            Sync
           </Button>
         </div>
         <p className="text-muted-foreground mb-6">
@@ -119,8 +150,7 @@ export function OnboardingCard() {
                   data-testid={`setup-${step.title.toLowerCase().replace(/\s+/g, '-')}`}
                   onClick={step.testConnection ? async () => {
                     const isConnected = await step.testConnection!();
-                    // You could show a toast notification here
-                    console.log(`${step.title} connection:`, isConnected);
+                    toast({ title: step.title, description: isConnected ? 'Connected' : 'Not reachable', variant: isConnected ? undefined : 'destructive' });
                   } : undefined}
                 >
                   {step.action}

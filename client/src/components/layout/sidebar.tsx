@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTenant } from "@/hooks/use-tenant";
 import { type TenantType } from "@shared/schema";
@@ -21,7 +22,9 @@ import {
   Plug,
   User,
   MoreVertical,
-  Box
+  Box,
+  Workflow,
+  Zap
 } from "lucide-react";
 
 const moduleIcons = {
@@ -36,12 +39,14 @@ const moduleIcons = {
   'Manufacturing': Factory,
   'Procurement': Truck,
   'Quality Control': ClipboardCheck,
-  'FOB Shipments': Ship
+  'FOB Shipments': Ship,
+  'n8n': Workflow
 };
 
 export function Sidebar() {
   const { currentTenant, setCurrentTenant, getTenantConfig } = useTenant();
   const tenantConfig = getTenantConfig(currentTenant);
+  const [, navigate] = useLocation();
 
   const handleTenantChange = (value: TenantType) => {
     setCurrentTenant(value);
@@ -80,6 +85,7 @@ export function Sidebar() {
               variant="secondary" 
               className="w-full justify-start space-x-3 bg-primary/10 text-primary hover:bg-primary/20"
               data-testid="nav-dashboard"
+              onClick={() => navigate('/dashboard')}
             >
               <Home className="h-4 w-4" />
               <span>Dashboard</span>
@@ -99,6 +105,29 @@ export function Sidebar() {
                   variant="ghost"
                   className="w-full justify-start space-x-3 px-5 text-muted-foreground hover:text-foreground hover:bg-muted"
                   data-testid={`nav-${module.toLowerCase().replace(/\s+/g, '-')}`}
+                  onClick={() => {
+                    if (module === 'Orders') {
+                      navigate('/orders');
+                      return;
+                    }
+                    if (module === 'Products') {
+                      navigate('/products');
+                      return;
+                    }
+                    if (module === 'Projects') {
+                      navigate('/projects');
+                      return;
+                    }
+                    if (module === 'CRM Pipeline') {
+                      navigate('/customers');
+                      return;
+                    }
+                    // Removed special-case mapping of 'Subscriptions' to /n8n
+                    if (module === 'n8n') {
+                      navigate('/n8n');
+                      return;
+                    }
+                  }}
                 >
                   {IconComponent && <IconComponent className="h-4 w-4" />}
                   <span>{module}</span>
@@ -132,9 +161,10 @@ export function Sidebar() {
               variant="ghost"
               className="w-full justify-start space-x-3 px-5 text-muted-foreground hover:text-foreground hover:bg-muted"
               data-testid="nav-integrations"
+              onClick={() => navigate('/integrations')}
             >
-              <Plug className="h-4 w-4" />
-              <span>Integrations</span>
+              <Zap className="h-4 w-4" />
+              <span>Integration Bridge</span>
             </Button>
           </div>
         </div>

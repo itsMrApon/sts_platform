@@ -37,6 +37,11 @@ export const apiClients = {
     return response.json();
   },
 
+  async getERPNextProjects(slug: string) {
+    const response = await apiRequest('GET', `/api/tenants/${slug}/erpnext/projects`);
+    return response.json();
+  },
+
   async getSaleorProducts(slug: string) {
     const response = await apiRequest('GET', `/api/tenants/${slug}/saleor/products`);
     return response.json();
@@ -47,13 +52,41 @@ export const apiClients = {
     return response.json();
   },
 
+  async getSaleorCustomers(slug: string) {
+    const response = await apiRequest('GET', `/api/tenants/${slug}/saleor/customers`);
+    return response.json();
+  },
+
+  async syncCustomers(slug: string) {
+    const response = await apiRequest('POST', `/api/tenants/${slug}/sync/customers`);
+    return response.json();
+  },
+
   async getIntegrationLogs(slug: string) {
     const response = await apiRequest('GET', `/api/tenants/${slug}/logs`);
     return response.json();
   },
 
-  async getLogs(slug: string) {
-    const response = await apiRequest('GET', `/api/tenants/${slug}/logs`);
+  async refreshSync(slug: string) {
+    const response = await apiRequest('POST', `/api/tenants/${slug}/refresh-sync`);
+    return response.json();
+  },
+
+  async getN8nStatus(slug: string) {
+    const response = await apiRequest('GET', `/api/n8n/status/${slug}`);
+    return response.json();
+  },
+
+  async triggerAutomation(slug: string, action: string, data: unknown = {}) {
+    const response = await apiRequest('POST', `/api/n8n/automation/${slug}`, {
+      action,
+      data,
+    });
+    return response.json();
+  },
+
+  async getWebhookStatus(slug: string) {
+    const response = await apiRequest('GET', `/api/tenants/${slug}/webhooks/status`);
     return response.json();
   }
 };

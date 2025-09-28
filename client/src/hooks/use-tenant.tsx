@@ -14,7 +14,7 @@ const tenantConfigs: Record<TenantType, TenantConfig> = {
     name: 'SudoTechServe',
     slug: 'sudotechserve',
     description: 'Agency & SaaS Operations',
-    modules: ['CRM Pipeline', 'Projects', 'Subscriptions', 'Support'],
+    modules: ['CRM Pipeline', 'Projects', 'Subscriptions', 'n8n', 'Support'],
     color: 'hsl(221.2 83.2% 53.3%)'
   },
   switchtoswag: {
@@ -22,7 +22,7 @@ const tenantConfigs: Record<TenantType, TenantConfig> = {
     name: 'SwitchToSwag',
     slug: 'switchtoswag',
     description: 'E-commerce & Design Studio',
-    modules: ['Products', 'Orders', 'Inventory', 'Design Studio'],
+    modules: ['Products', 'Orders', 'Projects', 'Inventory', 'Design Studio'],
     color: 'hsl(142.1 76.2% 36.3%)'
   },
   strongtermstrategy: {

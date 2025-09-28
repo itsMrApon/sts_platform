@@ -1,0 +1,252 @@
+{
+  "name": "Saleor-ERPNext Order Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sync-orders",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "order-sync-webhook"
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3000/api/n8n/trigger/sync-orders/{{ $json.tenant_slug }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "trigger-sync",
+      "name": "Trigger Order Sync",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3000/api/tenants/{{ $json.tenant_slug }}/saleor/orders",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "get-saleor-orders",
+      "name": "Get Saleor Orders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3000/api/tenants/{{ $json.tenant_slug }}/erpnext/customers",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "get-erpnext-customers",
+      "name": "Get ERPNext Customers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process orders and create customer leads in ERPNext\nconst saleorOrders = $('Get Saleor Orders').first().json.orders?.edges || [];\nconst erpnextCustomers = $('Get ERPNext Customers').first().json || [];\n\nconst syncData = {\n  tenant_slug: $('Webhook Trigger').first().json.tenant_slug,\n  sync_timestamp: new Date().toISOString(),\n  saleor_orders_count: saleorOrders.length,\n  erpnext_customers_count: erpnextCustomers.length,\n  new_leads_to_create: [],\n  orders_to_process: []\n};\n\n// Process each order\nfor (const orderEdge of saleorOrders) {\n  const order = orderEdge.node;\n  const customer = order.user;\n  \n  // Check if customer exists in ERPNext\n  const existingCustomer = erpnextCustomers.find(cust => \n    cust.email_id === customer.email ||\n    cust.customer_name === `${customer.firstName} ${customer.lastName}`\n  );\n  \n  if (!existingCustomer && customer.email) {\n    // Create lead for new customer\n    syncData.new_leads_to_create.push({\n      lead_name: `${customer.firstName} ${customer.lastName}`,\n      email_id: customer.email,\n      mobile_no: customer.phone || '',\n      source: 'Saleor E-commerce',\n      status: 'Lead',\n      notes: `Order #${order.number} - Total: ${order.total.gross.amount} ${order.total.gross.currency}`\n    });\n  }\n  \n  // Add order for processing\n  syncData.orders_to_process.push({\n    order_id: order.id,\n    order_number: order.number,\n    customer_email: customer.email,\n    total_amount: order.total.gross.amount,\n    currency: order.total.gross.currency,\n    status: order.status,\n    created_at: order.created,\n    line_items: order.lines?.map(line => ({\n      product_name: line.productName,\n      quantity: line.quantity,\n      unit_price: line.unitPrice.gross.amount\n    })) || []\n  });\n}\n\nreturn { json: syncData };"
+      },
+      "id": "process-orders",
+      "name": "Process Orders",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "{{ $json.new_leads_to_create.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-leads",
+      "name": "Check if Leads to Create",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3000/api/tenants/{{ $json.tenant_slug }}/erpnext/leads",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{{ $json.new_leads_to_create[0] }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "create-lead",
+      "name": "Create Lead in ERPNext",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3000/api/n8n/execute/{{ $json.tenant_slug }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"workflow\": \"order-sync\",\n  \"data\": {{ JSON.stringify($json) }}\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "log-execution",
+      "name": "Log Execution",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"Order sync workflow completed\",\n  \"data\": {{ JSON.stringify($json) }}\n}"
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1780, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Trigger Order Sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger Order Sync": {
+      "main": [
+        [
+          {
+            "node": "Get Saleor Orders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get ERPNext Customers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Saleor Orders": {
+      "main": [
+        [
+          {
+            "node": "Process Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ERPNext Customers": {
+      "main": [
+        [
+          {
+            "node": "Process Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Orders": {
+      "main": [
+        [
+          {
+            "node": "Check if Leads to Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Leads to Create": {
+      "main": [
+        [
+          {
+            "node": "Create Lead in ERPNext",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Lead in ERPNext": {
+      "main": [
+        [
+          {
+            "node": "Log Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Execution": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "order-sync-workflow",
+  "tags": ["saleor", "erpnext", "sync", "orders", "customers"]
+}
