@@ -29,7 +29,7 @@ export function OnboardingCard() {
   // Fetch integration logs to check webhook activity
   const { data: logs } = useQuery({
     queryKey: ['/api/tenants', currentTenant, 'logs'],
-    queryFn: () => apiClients.getLogs(currentTenant),
+    queryFn: () => apiClients.getIntegrationLogs(currentTenant),
     refetchInterval: 10000, // Refresh every 10 seconds for webhook activity
   });
 

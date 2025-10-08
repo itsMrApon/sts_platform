@@ -163,8 +163,8 @@ Every operation is automatically logged:
 The new clients are backward compatible with the existing codebase. Simply update your imports:
 
 ```typescript
-// Old
-import { ERPNextClient } from "./services/erpnext-client";
+// Old (deleted)
+// import { ERPNextClient } from "./services/erpnext-client";
 
 // New
 import { ERPNextClient } from "./clients";

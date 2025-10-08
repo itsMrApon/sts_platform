@@ -32,7 +32,7 @@ export function ShortcutsGrid() {
   return (
     <div className="mb-8">
       <h2 className="text-lg font-semibold text-foreground mb-4">Your Shortcuts</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {shortcuts.map((shortcut, index) => {
           const IconComponent = shortcut.icon;
           return (

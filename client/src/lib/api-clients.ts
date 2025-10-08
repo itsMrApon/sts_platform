@@ -9,6 +9,7 @@ export interface SyncStatus {
 export interface IntegrationStatus {
   erpnext?: SyncStatus;
   saleor?: SyncStatus;
+  n8n?: SyncStatus;
 }
 
 export const apiClients = {

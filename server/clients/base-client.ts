@@ -2,7 +2,7 @@
  * Base client class with common functionality for all API clients
  */
 
-import { storage } from '../../storage';
+import { storage } from '../storage';
 import { BaseConfig, ApiResponse, IntegrationLog } from './types/common';
 
 export abstract class BaseClient {

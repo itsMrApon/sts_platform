@@ -59,13 +59,14 @@ export default function CustomersPage() {
   }, [currentTenant, refetchSaleor, refetchERPNext]);
 
   const saleorCustomers = saleorData?.customers?.edges?.map((edge: any) => edge.node) || [];
-  const erpnextCustomers = erpnextData || [];
+  const erpnextCustomers = Array.isArray(erpnextData) ? erpnextData : [];
 
   const handleSync = () => {
     syncMutation.mutate();
   };
 
   const isCustomerInERPNext = (email: string) => {
+    if (!Array.isArray(erpnextCustomers)) return false;
     return erpnextCustomers.some((customer: any) => customer.email_id === email);
   };
 
@@ -142,7 +143,7 @@ export default function CustomersPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-600">
-                  {saleorCustomers.filter(customer => !isCustomerInERPNext(customer.email)).length}
+                  {saleorCustomers.filter((customer: any) => !isCustomerInERPNext(customer.email)).length}
                 </div>
                 <p className="text-xs text-muted-foreground">Need to be synced</p>
               </CardContent>

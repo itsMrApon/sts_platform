@@ -81,7 +81,7 @@ export type SyncStatus = typeof syncStatus.$inferSelect;
 export type InsertSyncStatus = z.infer<typeof insertSyncStatusSchema>;
 
 // Tenant configuration types
-export type TenantType = "sudotechserve" | "switchtoswag" | "strongtermstrategy";
+export type TenantType = "sudotechserve" | "switchtoswag" | "strongtermstrategy" | "superuser";
 
 export interface TenantConfig {
   id: string;

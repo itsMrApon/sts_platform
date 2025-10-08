@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 
 const moduleIcons = {
-  'CRM Pipeline': Users,
+  'Customers': Users,
   'Projects': ClipboardList,
   'Subscriptions': CreditCard,
   'Support': Headphones,
@@ -69,6 +69,7 @@ export function Sidebar() {
             <SelectValue placeholder="Select tenant" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="superuser">Superuser (Admin)</SelectItem>
             <SelectItem value="sudotechserve">SudoTechServe (Agency/SaaS)</SelectItem>
             <SelectItem value="switchtoswag">SwitchToSwag (E-commerce)</SelectItem>
             <SelectItem value="strongtermstrategy">StrongTermStrategy (Manufacturing)</SelectItem>
@@ -118,7 +119,7 @@ export function Sidebar() {
                       navigate('/projects');
                       return;
                     }
-                    if (module === 'CRM Pipeline') {
+                    if (module === 'Customers') {
                       navigate('/customers');
                       return;
                     }
