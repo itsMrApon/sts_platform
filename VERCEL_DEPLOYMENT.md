@@ -73,14 +73,16 @@
 In your Vercel dashboard:
 
 1. **Go to Project Settings → Environment Variables**
-2. **Add these variables:**
+2. **For now, you can skip these variables (they'll fallback to localhost):**
 
    ```
-   VITE_API_BASE_URL_SUPERUSER=https://your-superuser-backend.com
-   VITE_API_BASE_URL_SWITCHTOSWAG=https://your-switchtoswag-backend.com
-   VITE_API_BASE_URL_SUDOTECHSERVE=https://your-sudotechserve-backend.com
-   VITE_API_BASE_URL_STRONGTERMSTRATEGY=https://your-strongtermstrategy-backend.com
+   VITE_API_BASE_URL_SUPERUSER=http://localhost:4000
+   VITE_API_BASE_URL_SWITCHTOSWAG=http://localhost:4001
+   VITE_API_BASE_URL_SUDOTECHSERVE=http://localhost:4002
+   VITE_API_BASE_URL_STRONGTERMSTRATEGY=http://localhost:4003
    ```
+
+   **Note:** Since you don't have backend domains yet, the frontend will work but API calls will fail. This is normal for now.
 
 3. **Optional Discord Variables:**
    ```
@@ -89,9 +91,11 @@ In your Vercel dashboard:
    VITE_DISCORD_WEBHOOK_STRONGTERMSTRATEGY=https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN
    ```
 
-### **Step 4: Backend API URLs**
+### **Step 4: Backend APIs (Optional for Now)**
 
-You'll need to deploy your backend APIs separately. Options:
+**You can deploy the frontend now without backends!** The frontend will work, but API calls will show errors (which is expected).
+
+When you're ready to deploy backends, you have these options:
 
 #### **Option A: Deploy Backends to Vercel (Serverless Functions)**
 
@@ -108,18 +112,30 @@ You'll need to deploy your backend APIs separately. Options:
 - Use your own server or cloud VPS
 - Deploy using Docker Compose
 
-### **Step 5: Update API URLs**
+### **Step 5: Test Frontend Deployment (Without Backends)**
 
-Once your backends are deployed, update the environment variables in Vercel:
+Your frontend should work immediately! You'll get a Vercel URL like:
 
-```
-VITE_API_BASE_URL_SUPERUSER=https://superuser-api.vercel.app
-VITE_API_BASE_URL_SWITCHTOSWAG=https://switchtoswag-api.vercel.app
-VITE_API_BASE_URL_SUDOTECHSERVE=https://sudotechserve-api.vercel.app
-VITE_API_BASE_URL_STRONGTERMSTRATEGY=https://strongtermstrategy-api.vercel.app
-```
+- `https://your-project-name.vercel.app`
 
-### **Step 6: Test Deployment**
+**What will work:**
+
+- ✅ All tenant dashboards
+- ✅ Navigation between tenants
+- ✅ Discord links (if configured)
+- ✅ UI components and styling
+
+**What won't work yet:**
+
+- ❌ API calls (will show errors)
+- ❌ Data fetching
+- ❌ Real-time updates
+
+This is completely normal and expected!
+
+### **Step 6: Update API URLs (Later)**
+
+When you deploy your backends, update the environment variables in Vercel:
 
 1. **Visit your Vercel URL**
 2. **Test all tenant dashboards**
