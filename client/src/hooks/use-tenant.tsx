@@ -14,7 +14,7 @@ const tenantConfigs: Record<TenantType, TenantConfig> = {
     name: 'Superuser',
     slug: 'superuser',
     description: 'Admin & System Management',
-    modules: ['Dashboard', 'Integration Status', 'Shortcuts', 'Reports'],
+    modules: ['Dashboard', 'Integration Status', 'Shortcuts', 'Reports', 'Integration Bridge'],
     color: 'hsl(280 100% 70%)'
   },
   sudotechserve: {
@@ -22,7 +22,7 @@ const tenantConfigs: Record<TenantType, TenantConfig> = {
     name: 'SudoTechServe',
     slug: 'sudotechserve',
     description: 'Agency & SaaS Operations',
-    modules: ['Projects', 'Subscriptions', 'Support'],
+    modules: ['Projects', 'Subscriptions', 'Support', 'Discord'],
     color: 'hsl(221.2 83.2% 53.3%)'
   },
   switchtoswag: {
@@ -30,7 +30,7 @@ const tenantConfigs: Record<TenantType, TenantConfig> = {
     name: 'SwitchToSwag',
     slug: 'switchtoswag',
     description: 'E-commerce & Design Studio',
-    modules: ['Customers', 'Products', 'Orders', 'n8n', 'Projects', 'Inventory', 'Design Studio'],
+    modules: ['Customers', 'Products', 'Orders', 'n8n', 'Projects', 'Inventory', 'Design Studio', 'Discord'],
     color: 'hsl(142.1 76.2% 36.3%)'
   },
   strongtermstrategy: {
@@ -38,7 +38,7 @@ const tenantConfigs: Record<TenantType, TenantConfig> = {
     name: 'StrongTermStrategy',
     slug: 'strongtermstrategy',
     description: 'Procurement & Manufacturing',
-    modules: ['Manufacturing', 'Procurement', 'Quality Control', 'FOB Shipments'],
+    modules: ['Manufacturing', 'Procurement', 'Quality Control', 'FOB Shipments', 'Discord'],
     color: 'hsl(24.6 95% 53.1%)'
   }
 };

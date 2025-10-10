@@ -24,7 +24,8 @@ import {
   MoreVertical,
   Box,
   Workflow,
-  Zap
+  Zap,
+  MessageSquare
 } from "lucide-react";
 
 const moduleIcons = {
@@ -40,7 +41,9 @@ const moduleIcons = {
   'Procurement': Truck,
   'Quality Control': ClipboardCheck,
   'FOB Shipments': Ship,
-  'n8n': Workflow
+  'n8n': Workflow,
+  'Discord': MessageSquare,
+  'Integration Bridge': Zap
 };
 
 export function Sidebar() {
@@ -128,6 +131,22 @@ export function Sidebar() {
                       navigate('/n8n');
                       return;
                     }
+                    if (module === 'Discord') {
+                      // Open Discord channel based on current tenant
+                      const discordUrls = {
+                        switchtoswag: 'https://discord.com/channels/1137316728813142076/1399116707133526036',
+                        sudotechserve: 'https://discord.com/channels/1009752036159537183/1009752036818030630',
+                        strongtermstrategy: 'https://discord.com/channels/1409264281932792120/1409264282645954581',
+                        superuser: 'https://discord.com/channels/YOUR_SERVER_ID/YOUR_GENERAL_CHANNEL_ID'
+                      };
+                      const discordUrl = discordUrls[currentTenant] || discordUrls.superuser;
+                      window.open(discordUrl, '_blank');
+                      return;
+                    }
+                    if (module === 'Integration Bridge') {
+                      navigate('/integrations');
+                      return;
+                    }
                   }}
                 >
                   {IconComponent && <IconComponent className="h-4 w-4" />}
@@ -157,15 +176,6 @@ export function Sidebar() {
             >
               <Settings className="h-4 w-4" />
               <span>Settings</span>
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start space-x-3 px-5 text-muted-foreground hover:text-foreground hover:bg-muted"
-              data-testid="nav-integrations"
-              onClick={() => navigate('/integrations')}
-            >
-              <Zap className="h-4 w-4" />
-              <span>Integration Bridge</span>
             </Button>
           </div>
         </div>

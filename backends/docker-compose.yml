@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # API-1: SwitchToSwag E-commerce
+  api-1-switchtoswag:
+    build:
+      context: ./api-1-switchtoswag
+      dockerfile: Dockerfile
+    ports:
+      - "4001:4001"
+    environment:
+      - NODE_ENV=development
+      - PORT=4001
+      - DATABASE_URL=postgresql://sts:sTs%401535@db:5432/sts_db
+      - REDIS_URL=redis://redis:6379
+      - SALEOR_URL=http://saleor-platform-api-1:8000
+      - SALEOR_TOKEN=4xtNglUY26s6lDOptk0oUeT66bqxbt
+      - ERPNEXT_URL=http://frappe_docker-frontend-1:8080
+      - ERPNEXT_API_KEY=175aafefd8c448f
+      - ERPNEXT_API_SECRET=1b2b919c1580ade
+      - FRONTEND_URL=http://localhost:5173
+    depends_on:
+      - db
+      - redis
+    networks:
+      - sts-network
+
+  # API-2: SudoTechServe SaaS
+  api-2-sudotechserve:
+    build:
+      context: ./api-2-sudotechserve
+      dockerfile: Dockerfile
+    ports:
+      - "4002:4002"
+    environment:
+      - NODE_ENV=development
+      - PORT=4002
+      - DATABASE_URL=postgresql://sts:sTs%401535@db:5432/sts_db
+      - REDIS_URL=redis://redis:6379
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+      - FRONTEND_URL=http://localhost:5173
+    depends_on:
+      - db
+      - redis
+    networks:
+      - sts-network
+
+  # API-3: StrongTermStrategy Supply Chain
+  api-3-strongtermstrategy:
+    build:
+      context: ./api-3-strongtermstrategy
+      dockerfile: Dockerfile
+    ports:
+      - "4003:4003"
+    environment:
+      - NODE_ENV=development
+      - PORT=4003
+      - DATABASE_URL=postgresql://sts:sTs%401535@db:5432/sts_db
+      - REDIS_URL=redis://redis:6379
+      - ERPNEXT_URL=http://frappe_docker-frontend-1:8080
+      - ERPNEXT_API_KEY=175aafefd8c448f
+      - ERPNEXT_API_SECRET=1b2b919c1580ade
+      - FRONTEND_URL=http://localhost:5173
+    depends_on:
+      - db
+      - redis
+    networks:
+      - sts-network
+
+  # Shared Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=sts_db
+      - POSTGRES_USER=sts
+      - POSTGRES_PASSWORD=sTs@1535
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sts-network
+
+  # Shared Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - sts-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  sts-network:
+    external: true
